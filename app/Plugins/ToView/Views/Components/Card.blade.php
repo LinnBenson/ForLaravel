@@ -19,10 +19,12 @@
                 {{$title}}
             </div>
             <div class="toview-card-title-right">
-                <i
-                    class="bi-chevron-{{$open === 'true' ? 'up' : 'down'}} block bold p4"
-                    onclick="$('[data-rid={{$rid}}]').toggleClass('active');$(this).toggleClass('bi-chevron-up bi-chevron-down');"
-                ></i>
+                @if( $open !== 'off' )
+                    <i
+                        class="bi-chevron-{{$open === 'true' ? 'up' : 'down'}} block bold p4"
+                        onclick="$('[data-rid={{$rid}}]').toggleClass('active');$(this).toggleClass('bi-chevron-up bi-chevron-down');"
+                    ></i>
+                @endif
             </div>
         </div>
     @endif

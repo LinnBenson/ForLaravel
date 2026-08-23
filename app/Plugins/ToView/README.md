@@ -182,6 +182,9 @@
   - 例如 `Core.QRCode( $( '#qrcode' ), 'https://example.com', 160 )` 生成 160×160 像素的二维码
   - 例如 `Core.QRCode( $( '#qrcode' ), 'Hello', 128, { colorDark: '#000000', correctLevel: QRCode.CorrectLevel.M } )` 自定义颜色和纠错等级
   - return [void]
+- 复制文本
+  - `await Core.copy( [string]复制内容 )`
+  - return [Promise<boolean>]复制成功返回 true，内容无效、权限被拒绝或复制失败时返回 false
 - 获取表单数据
   - `Core.submit( [HTMLFormElement]表单元素, [Function|null]成功回调 = null )`
   - 读取表单内所有带有 `input` 属性的 ToView 输入组件；没有 `name`、没有组件 `type` 或已禁用的输入不会写入结果

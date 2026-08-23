@@ -18,9 +18,10 @@ window['Core'] = {
     app: {},
     // 用户信息
     user: null,
+    // 剪贴板对象
+    clipboard: null,
     // 缓存数据
     cache: {
-        clipboard: null, // 剪贴板对象
         lang: get( 'langs' ) || {}, // 语言包缓存
         RefreshSystemInfoInterval: null, // 刷新系统信息定时器
         ToastTimeout: null, // 通知消息定时器
@@ -60,12 +61,14 @@ window['Core'] = {
         // 页面加载完成事件
         $( document ).ready( function() {
             // 注册点击复制
-            Core.cache.clipboard = new ClipboardJS( '.copy' );
-            Core.cache.clipboard.on( 'success', () => {
+            Core.clipboard = new ClipboardJS( '.copy' );
+            Core.clipboard.on( 'success', ( e ) => {
                 Core.toast( 0, 'Success', `${t( 'base.copy' )}${t( 'base.true' )}` );
+                e.clearSelection();
             });
-            Core.cache.clipboard.on( 'error', () => {
+            Core.clipboard.on( 'error', ( e ) => {
                 Core.toast( 2, 'Error', `${t( 'base.copy' )}${t( 'base.false' )}` );
+                console.error( e );
             });
         });
     },
@@ -174,7 +177,7 @@ window['Core'] = {
                     if ( typeof this.vButtons[key]['method'] === 'function' ) {
                         const methodName = `popupButtonMethod_${this.vRid}_${key}`;
                         Core.cache[methodName] = this.vButtons[key]['method'];
-                        this.vButtons[key]['method'] = `Core.cache['${methodName}']( this )`;
+                        this.vButtons[key]['method'] = `Core.cache['${methodName}']( '${this.vRid}' )`;
                     }
                 }
                 $box = $( 'div#toview-unit-box div.toview-unit-popup' );
@@ -348,11 +351,43 @@ window['Core'] = {
                 height: size,
                 colorDark: other.color ?? `rgb( ${$( ':root' ).css( '--r1' ).trim()} )`,
                 colorLight: other.background ?? 'rgba( 0, 0, 0, 0 )',
-                correctLevel: QRCode.CorrectLevel.H,
+                correctLevel: QRCode.CorrectLevel.M,
                 ...other
             });
         });
         setTimeout(() => { $box.removeAttr( 'title' ); }, 50 );
+    },
+    copy: async function( text ) {
+        if ( typeof text !== 'string' || text === '' ) {
+            Core.toast( 2, 'Error', `${t( 'base.copy' )}${t( 'base.false' )}` );
+            return false;
+        }
+        try {
+            if ( navigator.clipboard?.writeText && window.isSecureContext ) {
+                await navigator.clipboard.writeText( text );
+            }else {
+                const $textarea = $( '<textarea>' ).val( text ).css({
+                    position: 'fixed',
+                    top: '-9999px',
+                    left: '-9999px',
+                    opacity: 0,
+                });
+                $( 'body' ).append( $textarea );
+                $textarea[0].focus();
+                $textarea[0].select();
+                $textarea[0].setSelectionRange( 0, text.length );
+                const copied = document.execCommand( 'copy' );
+                $textarea.remove();
+                if ( !copied ) {
+                    throw new Error( '复制命令执行失败' );
+                }
+            }
+            Core.toast( 0, 'Success', `${t( 'base.copy' )}${t( 'base.true' )}` );
+            return true;
+        }catch ( error ) {
+            Core.toast( 2, 'Error', `${t( 'base.copy' )}${t( 'base.false' )}` );
+            return false;
+        }
     },
     /**
      * 获取表单数据
