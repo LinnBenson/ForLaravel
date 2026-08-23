@@ -137,6 +137,75 @@ div.toview-unit-toast-box div.toview-unit-toast-item.toview-unit-toast-close {
         width: calc( var( --vw ) - ( var( --size ) * 2 ) - 2px - ( 8px * 2 ) );
     }
 }
+/* 弹窗组件 */
+div.toview-unit-popup-box {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+}
+div.toview-unit-popup-box.active {
+    background-color: rgb( var( --r0 ), 0.75 );
+    pointer-events: auto;
+}
+div.toview-unit-popup-box div.toview-unit-popup-card {
+    --popupPadding: 24px;
+    width: var( --width );
+    max-width: calc( var( --vw ) - 28px );
+    height: auto;
+    max-height: var( --vh );
+    background-color: rgb( var( --r6 ) );
+    border: 1px solid rgb( var( --r3 ), 0.15 );
+    border-radius: var( --radius );
+    pointer-events: auto;
+    box-sizing: border-box;
+}
+div.toview-unit-popup-box div.toview-unit-popup-card div.toview-unit-popup-header {
+    --size: 30px;
+    padding: 8px 16px;
+    border-bottom: 1px solid rgb( var( --r3 ), 0.15 );
+}
+div.toview-unit-popup-box div.toview-unit-popup-card div.toview-unit-popup-header i.toview-unit-popup-icon {
+    border-radius: var( --radius );
+    margin-left: -8px;
+    margin-right: -2px;
+    font-weight: bold;
+    vertical-align: middle;
+}
+div.toview-unit-popup-box div.toview-unit-popup-card div.toview-unit-popup-header div.toview-unit-popup-title {
+    display: inline-block;
+    width: calc( 100% - ( var( --size ) * 2 ) - 16px );
+    line-height: var( --size );
+    font-weight: bold;
+    vertical-align: middle;
+}
+div.toview-unit-popup-box div.toview-unit-popup-card div.toview-unit-popup-header i.toview-unit-popup-close {
+    float: right;
+    font-weight: bold;
+    border-radius: var( --radius );
+    cursor: pointer;
+}
+div.toview-unit-popup-box div.toview-unit-popup-card div.toview-unit-popup-content {
+    max-height: calc( var( --vh ) - 180px );
+    padding: var( --popupPadding );
+}
+div.toview-unit-popup-box div.toview-unit-popup-card div.toview-unit-popup-footer {
+    display: flex;
+    padding: 0px;
+    border-top: 1px solid rgb( var( --r3 ), 0.15 );
+}
+div.toview-unit-popup-box div.toview-unit-popup-card div.toview-unit-popup-footer > div {
+    flex: 1;
+    min-width: 0;
+    text-align: center;
+    line-height: 40px;
+    border-right: 1px solid rgb( var( --r3 ), 0.15 );
+    cursor: pointer;
+}
+div.toview-unit-popup-box div.toview-unit-popup-card div.toview-unit-popup-footer > div:last-child {
+    border-right: none;
+}
 /* 卡片组件 */
 section.toview-card {
     --header: 30px;

@@ -8,11 +8,7 @@
         <section class="welcome-intro-content">
             <div class="welcome-intro-main">
                 <div class="welcome-intro-mark" aria-hidden="true">
-                    @if( setting( 'app.icon' ) )
-                        <img src="{{setting( 'app.icon' )}}" alt="" />
-                    @else
-                        <i class="bi bi-layers"></i>
-                    @endif
+                    <x-View::QRCode size="100%" :config="[ 'color' => '#000', 'background' => '#eee' ]">{{setting( 'app.title', 'Laravel' )}}</x-View::QRCode>
                 </div>
                 <div class="welcome-intro-copy">
                     <span class="welcome-intro-eyebrow">TO VIEW COMPONENT LIBRARY</span>
@@ -52,9 +48,23 @@
             <x-View::Button icon="bi-link-45deg" color="r2" onClick="Core.toast( 3, '通知标题', '通知内容通知内容通知内容通知内容通知内容通知内容通知内容' )">通知测试</x-View::Button>
             <x-View::Button icon="bi-cart2" color="r3" onClick="Core.loading( true, 3000 )">加载测试</x-View::Button>
             <x-View::Button icon="bi-check-circle" color="r4" onClick="Core.boxLoading( $( '.test' ), true, 3000 )">卡片加载</x-View::Button>
-            <x-View::Button icon="bi-exclamation-circle" color="r5">按钮 4</x-View::Button>
+            <x-View::Button icon="bi-exclamation-circle" color="r5" class="copy" data-clipboard-text="复制成功">点击复制</x-View::Button>
             <x-View::Button icon="bi-star" color="r3" loading>按钮 2</x-View::Button>
-            <x-View::Button icon="bi-cart2" color="r3" size="big">按钮 2</x-View::Button>
+            <x-View::Button icon="bi-cart2" color="r3" size="big" onClick="
+                Core.popup( '123456' ).icon( 'bi-star' ).button({
+                    icon: 'bi-star',
+                    title: '测试按钮',
+                    method: () => {
+                        Core.toast( 0, '按钮点击', '你点击了弹窗按钮' );
+                    }
+                }).button({
+                    icon: 'bi-star',
+                    title: '测试按钮',
+                    method: () => {
+                        Core.toast( 0, '按钮点击', '你点击了弹窗按钮' );
+                    }
+                }).title( '弹窗标题' ).show()
+            ">点击弹窗</x-View::Button>
             <x-View::Button icon="bi-cart2" color="r3" size="small">按钮 2</x-View::Button>
         </x-View::Layout>
         <x-View::Layout class="bottom8" gap="8px">

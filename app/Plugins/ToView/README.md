@@ -25,6 +25,10 @@
         布局内容
     </x-View::Layout>
   ```
+- 二维码组件 [Views/Components/QRCode.blade.php]
+  ```
+    <x-View::QRCode size="二维码尺寸">二维码内容</x-View::QRCode>
+  ```
 - 输入组件 [Views/Components/Input.blade.php]
   ```
     <form onsubmit="Core.submit( this, successMethod ); return false;">
@@ -117,6 +121,25 @@
   - HTTP 401 响应会清理失效的本地登录信息；存在 token 时显示登录失效通知并刷新页面
   - 关闭自动检查后，成功和失败响应分别原样传递给 `.success()` 与 `.error()` 回调
   - `.request()` 返回 jqXHR 对象，可继续调用 `.done()`、`.fail()`、`.always()` 或 `.abort()`
+- 创建弹窗
+  - `Core.popup( [string|jQuery]弹窗内容 )`
+  - 支持的方法如下：
+    - `.title( [string]标题 )` 设置弹窗标题
+    - `.icon( [string]Bootstrap Icons 类名 )` 设置标题图标，例如 `bi-star`
+    - `.close( [boolean]是否显示关闭按钮 )` 设置右上角关闭按钮，默认为 `true`
+    - `.mask( [boolean]是否显示遮罩 )` 设置弹窗遮罩，默认为 `true`
+    - `.width( [string]宽度 )` 设置弹窗宽度，例如 `600px` 或 `80vw`
+    - `.height( [string]高度 )` 设置弹窗高度，例如 `400px` 或 `80vh`
+    - `.rid( [string]唯一标识 )` 设置弹窗 RID；显示相同 RID 的弹窗时会先关闭已有弹窗
+    - `.button( [object]按钮配置 )` 添加一个按钮；配置支持 `title` 按钮文本、`icon` 图标和 `method` 点击回调
+    - `.buttons( [array]按钮配置列表 )` 替换全部按钮配置
+    - `.show()` 将配置完成的弹窗添加到页面
+  - return [object]可链式配置的弹窗对象
+- 关闭弹窗
+  - `Core.popupClose( [string]弹窗唯一标识 )`
+  - 查找并移除具有指定 RID 的弹窗；目标不存在时不执行操作
+  - 例如 `Core.popupClose( 'notice-popup' )`
+  - return [void]
 - 刷新系统信息
   - `Core.refreshSystemInfo( [string|null]语言包名称 = null )`
   - 携带 `Core.headers()` 返回的请求头向 `/api/index` 发起 GET 请求
@@ -149,6 +172,15 @@
   - 例如 `Core.boxLoading( $( '#card' ) )` 在指定元素内显示加载遮罩
   - 例如 `Core.boxLoading( $( '#card' ), true, 3000 )` 显示遮罩并在 3 秒后自动关闭
   - 例如 `Core.boxLoading( $( '#card' ), false )` 手动关闭指定元素的加载遮罩
+  - return [void]
+- 生成二维码
+  - `Core.QRCode( [jQuery]目标元素, [string]二维码内容, [number]尺寸 = 128, [object]其他配置 = {} )`
+  - 在目标 jQuery 元素内部生成二维码；生成前会清空目标元素，并移除 QRCode.js 自动添加的 `title` 属性
+  - 宽度和高度默认均为 128 像素，默认深色为 `#2b2b2b`、浅色为 `#eeeeee`，纠错等级为 `QRCode.CorrectLevel.H`
+  - 其他配置会覆盖同名默认配置，可传入 QRCode.js 支持的 `width`、`height`、`colorDark`、`colorLight`、`correctLevel` 等选项
+  - 目标参数必须是包含有效 DOM 元素的 jQuery 对象，例如 `$( '#qrcode' )`
+  - 例如 `Core.QRCode( $( '#qrcode' ), 'https://example.com', 160 )` 生成 160×160 像素的二维码
+  - 例如 `Core.QRCode( $( '#qrcode' ), 'Hello', 128, { colorDark: '#000000', correctLevel: QRCode.CorrectLevel.M } )` 自定义颜色和纠错等级
   - return [void]
 - 获取表单数据
   - `Core.submit( [HTMLFormElement]表单元素, [Function|null]成功回调 = null )`

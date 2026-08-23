@@ -20,6 +20,7 @@ window['Core'] = {
     user: null,
     // 缓存数据
     cache: {
+        clipboard: null, // 剪贴板对象
         lang: get( 'langs' ) || {}, // 语言包缓存
         RefreshSystemInfoInterval: null, // 刷新系统信息定时器
         ToastTimeout: null, // 通知消息定时器
@@ -56,6 +57,17 @@ window['Core'] = {
         // 初始化系统信息
         this.refreshSystemInfo();
         this.cache['RefreshSystemInfoInterval'] = setInterval( this.refreshSystemInfo, 10000 );
+        // 页面加载完成事件
+        $( document ).ready( function() {
+            // 注册点击复制
+            Core.cache.clipboard = new ClipboardJS( '.copy' );
+            Core.cache.clipboard.on( 'success', () => {
+                Core.toast( 0, 'Success', `${t( 'base.copy' )}${t( 'base.true' )}` );
+            });
+            Core.cache.clipboard.on( 'error', () => {
+                Core.toast( 2, 'Error', `${t( 'base.copy' )}${t( 'base.false' )}` );
+            });
+        });
     },
 
     /**
@@ -118,6 +130,90 @@ window['Core'] = {
      * @returns {webBuild} Web 构建对象
      */
     web: function( link ) { return new webBuild( link ); },
+    /**
+     * 创建弹窗对象
+     * @param {string|jQuery} content 弹窗内容
+     * @returns {object} 弹窗对象
+     */
+    popup: function( content ) {
+        content = content instanceof jQuery ? content.html() : content;
+        return {
+            vRid: uuid(),
+            vTitle: null,
+            vIcon: null,
+            vClose: true,
+            vMask: true,
+            vButtons: [],
+            content: content,
+            vWidth: '580px',
+            vHeight: 'calc( var( --vh ) - 40px )',
+            // 设置标题
+            title: function( title ) { this.vTitle = title; return this; },
+            // 设置标题图标
+            icon: function( icon ) { this.vIcon = icon; return this; },
+            // 设置是否显示关闭按钮
+            close: function( close ) { this.vClose = !!close; return this; },
+            // 设置按钮组
+            buttons: function( buttons ) { this.vButtons = Array.isArray( buttons ) ? buttons : []; return this; },
+            // 添加单个按钮
+            button: function( button ) { if ( button && typeof button === 'object' ) { this.vButtons.push( button ); } return this; },
+            // 设置弹窗宽度
+            width: function( width ) { this.vWidth = width; return this; },
+            // 设置弹窗高度
+            height: function( height ) { this.vHeight = height; return this; },
+            // 设置弹窗唯一标识
+            rid: function( rid ) { this.vRid = rid; return this; },
+            // 设置是否显示遮罩
+            mask: function( mask ) { this.vMask = !!mask; return this; },
+            // 显示弹窗
+            show: function() {
+                // 如果已存在相同 rid 的弹窗，则先关闭
+                Core.popupClose( this.vRid );
+                // 解析按钮功能
+                for ( const key in this.vButtons ?? [] ) {
+                    if ( typeof this.vButtons[key]['method'] === 'function' ) {
+                        const methodName = `popupButtonMethod_${this.vRid}_${key}`;
+                        Core.cache[methodName] = this.vButtons[key]['method'];
+                        this.vButtons[key]['method'] = `Core.cache['${methodName}']( this )`;
+                    }
+                }
+                $box = $( 'div#toview-unit-box div.toview-unit-popup' );
+                $box.append( `
+                    <div
+                        class="toview-unit-popup-box center ${this.vMask ? 'active' : ''}"
+                        rid="${this.vRid}"
+                    >
+                        <div class="toview-unit-popup-card" style="--width: ${this.vWidth}; --height: ${this.vHeight};">
+                            ${this.vTitle !== null || this.vIcon !== null || this.vClose ? `
+                                <div class="toview-unit-popup-header">
+                                    ${this.vIcon !== null ? `<i class="bi block ${this.vIcon} toview-unit-popup-icon"></i>` : ''}
+                                    ${this.vTitle !== null ? `<div class="toview-unit-popup-title more">${this.vTitle}</div>` : ''}
+                                    ${this.vClose ? `<i class="bi block bi-x-lg r3 toview-unit-popup-close" onClick="Core.popupClose( '${this.vRid}' )"></i>` : ''}
+                                </div>
+                            ` : ''}
+                            <div class="toview-unit-popup-content scroll">
+                                ${content}
+                            </div>
+                            ${this.vButtons.length > 0 ? `
+                                <div class="toview-unit-popup-footer toview-unit-popup-button${this.vButtons.length}">
+                                    ${this.vButtons.map(( button ) => {return `
+                                        <div onClick="${button.method ? button.method : ''}">${!empty( button.icon ) ? `<i class="bi ${button.icon}"></i> ` : ''}${button.title}</div>
+                                    `}).join( '' )}
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                `);
+                return this;
+            }
+        };
+    },
+    popupClose: function( rid ) {
+        const $box = $( `div#toview-unit-box div.toview-unit-popup-box[rid="${rid}"]` );
+        if ( $box.length ) {
+            $box.remove();
+        }
+    },
     /**
      * 显示通知消息
      * @param {number} status 通知状态，0=成功、1=消息、2=错误、3=警告
@@ -233,6 +329,30 @@ window['Core'] = {
         }else {
             closeBoxLoading();
         }
+    },
+    /**
+     * 生成二维码
+     * 在指定的 jQuery 元素内部生成二维码。
+     * @param {jQuery} $box 需要生成二维码的 jQuery 元素
+     * @param {string} text 二维码内容
+     * @param {number} size 二维码尺寸，单位像素
+     * @param {object} other 其他配置项
+     * @returns {void}
+     */
+    QRCode: function( $box, text, size = 128, other = {} ) {
+        $box.empty();
+        $(() => {
+            const qrcode = new QRCode( $box[0], {
+                text: text,
+                width: size,
+                height: size,
+                colorDark: other.color ?? `rgb( ${$( ':root' ).css( '--r1' ).trim()} )`,
+                colorLight: other.background ?? 'rgba( 0, 0, 0, 0 )',
+                correctLevel: QRCode.CorrectLevel.H,
+                ...other
+            });
+        });
+        setTimeout(() => { $box.removeAttr( 'title' ); }, 50 );
     },
     /**
      * 获取表单数据

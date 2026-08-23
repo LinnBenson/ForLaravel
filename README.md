@@ -130,7 +130,7 @@ location / {
 - Composer 依赖: Array `$plugin->relyComposer`
   - 数组键为 Composer 包名，数组值为 Composer 版本约束
 - 插件依赖: Array `$plugin->relyPlugin`
-  - 数组键为插件标识，数组值为 Composer Semver 版本约束
+  - 数组键为插件标识，数组值为插件的版本约束
 - 加载插件
   - `PluginProvider::load( [string]插件标识 )`
   - 校验插件标识、目录、Composer 依赖、插件依赖及循环依赖，通过后启用并缓存插件实例

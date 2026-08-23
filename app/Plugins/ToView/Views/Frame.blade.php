@@ -33,6 +33,8 @@
         @endif
         <script src="{{route( 'plugins.to-view.asset', [ 'path' => 'js/jquery-4.0.0.min.js' ])}}?v={{$frame->version}}"></script>
         <script src="{{route( 'plugins.to-view.asset', [ 'path' => 'js/jquery.cookie.js' ])}}?v={{$frame->version}}"></script>
+        <script src="{{route( 'plugins.to-view.asset', [ 'path' => 'js/clipboard.min.js' ])}}?v={{$frame->version}}"></script>
+        <script src="{{route( 'plugins.to-view.asset', [ 'path' => 'js/qrcode.min.js' ])}}?v={{$frame->version}}"></script>
         <title>@hasSection( 'title' )@yield( 'title' ) - @endif{{ setting( 'app.title' ) }}</title>
         <style>
             :root { {{$themeStyle}} }
@@ -45,6 +47,8 @@
     </head>
     <body>
         <div id="toview-unit-box">
+            <div class="toview-unit toview-unit-full toview-unit-popup">
+            </div>
             <div class="toview-unit toview-unit-full toview-unit-loading">
                 <div class="toview-unit-loading-box center">
                     <div class="toview-unit-loading"></div>
