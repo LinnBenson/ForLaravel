@@ -7,6 +7,7 @@ return array (
     1 => 'LaravelTool',
     2 => 'PushNotifier',
     3 => 'NodeSubscription',
+    4 => 'TikHubMedia',
   ),
   'hooks' => 
   array (
