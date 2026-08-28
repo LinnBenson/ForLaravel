@@ -18,6 +18,15 @@
    - `php artisan queue:work --tries=1 --timeout=65`
    - 用于处理异步任务，如发送通知、邮件等
 
+# 环境配置
+1. 所需 PHP 函数
+   - `shell_exec,proc_open,exec,symlink,pcntl_alarm,pcntl_fork,pcntl_signal,pcntl_signal_dispatch,pcntl_wait`
+   - `shell_exec` 用于后台服务项管理和 LaravelTool 插件执行受控的 Artisan 命令
+   - `proc_open` 和 `exec` 用于 Symfony Process、Artisan 命令及相关进程调用
+   - `symlink` 用于 `php artisan storage:link` 创建公开存储目录链接
+   - `pcntl_alarm` 和 `pcntl_signal` 用于 Laravel 队列的任务超时与优雅停止
+   - `pcntl_fork`、`pcntl_signal_dispatch` 和 `pcntl_wait` 用于 Workerman 多进程服务
+
 # 伪静态部署
 ```
 location ^~ /internal- {
