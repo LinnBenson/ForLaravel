@@ -81,6 +81,7 @@ div.toview-unit-loading-box div.toview-unit-loading:before {
 div.toview-unit-toast-box {
     --size: 48px;
     display: flex;
+    align-items: center;
     background-color: rgb( var( --r6 ) );
     border: 1px solid rgb( var( --r3 ), 0.25 );
     border-radius: var( --radius );
@@ -141,11 +142,13 @@ div.toview-unit-toast-box div.toview-unit-toast-item.toview-unit-toast-close {
 div.toview-unit-popup-box {
     width: 100%;
     height: 100%;
+    background-color: rgb( var( --r0 ), 0 );
+    transition: all 0.24s ease;
     position: absolute;
     top: 0px;
     left: 0px;
 }
-div.toview-unit-popup-box.active {
+div.toview-unit-popup-box.mask {
     background-color: rgb( var( --r0 ), 0.75 );
     pointer-events: auto;
 }
@@ -160,6 +163,13 @@ div.toview-unit-popup-box div.toview-unit-popup-card {
     border-radius: var( --radius );
     pointer-events: auto;
     box-sizing: border-box;
+    transform: scale( 0 );
+    opacity: 0;
+    transition: all 0.24s ease;
+}
+div.toview-unit-popup-box.active div.toview-unit-popup-card {
+    opacity: 1;
+    transform: scale( 1 );
 }
 div.toview-unit-popup-box div.toview-unit-popup-card div.toview-unit-popup-header {
     --size: 30px;

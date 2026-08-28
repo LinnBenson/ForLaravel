@@ -63,11 +63,11 @@ window['Core'] = {
             // 注册点击复制
             Core.clipboard = new ClipboardJS( '.copy' );
             Core.clipboard.on( 'success', ( e ) => {
-                Core.toast( 0, 'Success', `${t( 'base.copy' )}${t( 'base.true' )}` );
+                Core.toast( 0, '', `${t( 'base.copy' )}${t( 'base.true' )}` );
                 e.clearSelection();
             });
             Core.clipboard.on( 'error', ( e ) => {
-                Core.toast( 2, 'Error', `${t( 'base.copy' )}${t( 'base.false' )}` );
+                Core.toast( 2, '', `${t( 'base.copy' )}${t( 'base.false' )}` );
                 console.error( e );
             });
         });
@@ -183,7 +183,7 @@ window['Core'] = {
                 $box = $( 'div#toview-unit-box div.toview-unit-popup' );
                 $box.append( `
                     <div
-                        class="toview-unit-popup-box center ${this.vMask ? 'active' : ''}"
+                        class="toview-unit-popup-box center"
                         rid="${this.vRid}"
                     >
                         <div class="toview-unit-popup-card" style="--width: ${this.vWidth}; --height: ${this.vHeight};">
@@ -207,6 +207,10 @@ window['Core'] = {
                         </div>
                     </div>
                 `);
+                const $boxPopup = $( `div#toview-unit-box div.toview-unit-popup-box[rid="${this.vRid}"]` );
+                void $boxPopup[0].offsetWidth;
+                $boxPopup.addClass( 'active' );
+                if ( this.vMask ) { $boxPopup.addClass( 'mask' ); }
                 return this;
             }
         };
@@ -214,7 +218,8 @@ window['Core'] = {
     popupClose: function( rid ) {
         const $box = $( `div#toview-unit-box div.toview-unit-popup-box[rid="${rid}"]` );
         if ( $box.length ) {
-            $box.remove();
+            $box.removeClass( 'mask' ).removeClass( 'active' );
+            setTimeout(() => { $box.remove(); }, 260 );
         }
     },
     /**
@@ -359,7 +364,7 @@ window['Core'] = {
     },
     copy: async function( text ) {
         if ( typeof text !== 'string' || text === '' ) {
-            Core.toast( 2, 'Error', `${t( 'base.copy' )}${t( 'base.false' )}` );
+            Core.toast( 2, '', `${t( 'base.copy' )}${t( 'base.false' )}` );
             return false;
         }
         try {
@@ -382,10 +387,10 @@ window['Core'] = {
                     throw new Error( '复制命令执行失败' );
                 }
             }
-            Core.toast( 0, 'Success', `${t( 'base.copy' )}${t( 'base.true' )}` );
+            Core.toast( 0, '', `${t( 'base.copy' )}${t( 'base.true' )}` );
             return true;
         }catch ( error ) {
-            Core.toast( 2, 'Error', `${t( 'base.copy' )}${t( 'base.false' )}` );
+            Core.toast( 2, '', `${t( 'base.copy' )}${t( 'base.false' )}` );
             return false;
         }
     },
@@ -471,7 +476,7 @@ window['Core'] = {
             status = false;
             let title = $inputBox.find( 'div.toview-input-title span' ).text();
             title = typeof title === 'string' && title !== '' ? title.trim() : dataName;
-            Core.toast( 2, t( 'base.error.s2' ), t( 'base.error.required', { attribute: title } ) );
+            Core.toast( 2, '', t( 'base.error.required', { attribute: title } ) );
             $inputBox.attr( 'error', '' );
             clearTimeout( Core.cache[`Form-${dataName}`] );
             Core.cache[`Form-${dataName}`] = setTimeout(() => { $inputBox.removeAttr( 'error' ); }, 3000 );
@@ -750,7 +755,7 @@ class webBuild {
             Core.user = null; del( 'user' );
             if ( get( 'token' ) ) {
                 del( 'token' );
-                Core.toast( 2, t( 'base.error.s2' ), t( 'base.error.401' ) );
+                Core.toast( 2, '', t( 'base.error.401' ) );
                 setTimeout( () => { location.reload(); }, 1000 );
                 return;
             }
@@ -759,7 +764,7 @@ class webBuild {
         if ( is_json( response ) ) { return this.successSystem( response ); }
         // 其他错误
         if ( this.errorCallback ) { this.errorCallback( xhr, textStatus, errorThrown ); }
-        return Core.toast( 2, t( 'base.error.s2' ), `${code}|${t( 'base.error.unknown' )}` );
+        return Core.toast( 2, '', `${code}|${t( 'base.error.unknown' )}` );
     }
 }
 

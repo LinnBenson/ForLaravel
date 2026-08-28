@@ -12,11 +12,11 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
         <meta http-equiv="Cache-Control" content="no-siteapp">
-        <link rel="icon" href="/favicon.ico" type="image/x-icon" />
-        <link rel="apple-touch-icon" sizes="180x180" href="/favicon.ico" />
-        <link rel="apple-touch-icon-precomposed" href="/favicon.ico" />
-        <meta name="msapplication-TileImage" content="/favicon.ico" />
-        <link rel="shortcut icon" href="/favicon.ico" />
+        <link rel="icon" href="{{setting( 'app.icon' )}}" type="image/x-icon" />
+        <link rel="apple-touch-icon" sizes="180x180" href="{{setting( 'app.icon' )}}" />
+        <link rel="apple-touch-icon-precomposed" href="{{setting( 'app.icon' )}}" />
+        <meta name="msapplication-TileImage" content="{{setting( 'app.icon' )}}" />
+        <link rel="shortcut icon" href="{{setting( 'app.icon' )}}" />
         <meta name="apple-mobile-web-app-capable" content="yes">
         <meta name="apple-touch-fullscreen" content="yes">
         <meta name="apple-mobile-web-app-status-bar-style" content="default">
