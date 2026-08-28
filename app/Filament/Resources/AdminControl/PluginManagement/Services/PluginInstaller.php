@@ -30,7 +30,7 @@ class PluginInstaller {
     /**
      * 从上传文件安装插件。
      * @param UploadedFile $upload 上传的 ZIP 压缩包
-     * @return array{id: string, name: string, version: string} 安装结果
+     * @return array{id: string, name: string, version: string, updated: bool} 安装结果
      */
     public function installFromUpload( UploadedFile $upload ): array {
         return $this->withWorkspace( function( string $workspace ) use ( $upload ): array {
@@ -47,7 +47,7 @@ class PluginInstaller {
      * 为后续扩展手动更新入口保留与远程更新相同的安全流程。
      * @param string $pluginId 已安装插件标识
      * @param UploadedFile $upload 上传的 ZIP 压缩包
-     * @return array{id: string, name: string, version: string} 更新结果
+     * @return array{id: string, name: string, version: string, updated: bool} 更新结果
      */
     public function updateFromUpload( string $pluginId, UploadedFile $upload ): array {
         return $this->withWorkspace( function( string $workspace ) use ( $pluginId, $upload ): array {
@@ -62,7 +62,7 @@ class PluginInstaller {
     /**
      * 从远程链接安装插件。
      * @param string $url 插件 ZIP 链接
-     * @return array{id: string, name: string, version: string} 安装结果
+     * @return array{id: string, name: string, version: string, updated: bool} 安装结果
      */
     public function installFromUrl( string $url ): array {
         return $this->withWorkspace( function( string $workspace ) use ( $url ): array {
@@ -76,7 +76,7 @@ class PluginInstaller {
      * 从插件声明的来源链接更新插件。
      * @param string $pluginId 已安装插件标识
      * @param string $url 插件 ZIP 链接
-     * @return array{id: string, name: string, version: string} 更新结果
+     * @return array{id: string, name: string, version: string, updated: bool} 更新结果
      */
     public function updateFromUrl( string $pluginId, string $url ): array {
         return $this->withWorkspace( function( string $workspace ) use ( $pluginId, $url ): array {
@@ -89,7 +89,7 @@ class PluginInstaller {
     /**
      * 在独立缓存目录内执行安装任务。
      * @param callable(string): array $callback 安装任务
-     * @return array{id: string, name: string, version: string} 安装结果
+     * @return array{id: string, name: string, version: string, updated: bool} 安装结果
      */
     private function withWorkspace( callable $callback ): array {
         $cacheRoot = storage_path( 'framework/plugins' );
@@ -114,7 +114,7 @@ class PluginInstaller {
      * @param string $archivePath 压缩包路径
      * @param string $workspace 安装缓存目录
      * @param string|null $updateId 待更新的插件标识
-     * @return array{id: string, name: string, version: string} 安装结果
+     * @return array{id: string, name: string, version: string, updated: bool} 安装结果
      */
     private function installArchive( string $archivePath, string $workspace, ?string $updateId = null ): array {
         if ( !is_file( $archivePath ) || filesize( $archivePath ) === 0 ) { throw new RuntimeException( '插件压缩包为空。' ); }
@@ -134,8 +134,8 @@ class PluginInstaller {
         $version = $this->validateVersion( $candidate->version );
         $destination = app_path( "Plugins/{$pluginId}" );
         $backupPath = null;
-        if ( $updateId === null ) {
-            $this->assertNotInstalled( $pluginId, $version, $destination );
+        if ( $updateId === null && !file_exists( $destination ) ) {
+            // 插件尚未安装，继续执行首次安装。
         }else {
             $this->assertCanUpdate( $pluginId, $version, $destination );
             $backupPath = "{$workspace}/previous-{$pluginId}";
@@ -155,7 +155,7 @@ class PluginInstaller {
      * @param string $pluginId 插件标识
      * @param string $destination 正式插件目录
      * @param string|null $backupPath 更新前的插件备份目录
-     * @return array{id: string, name: string, version: string} 安装结果
+     * @return array{id: string, name: string, version: string, updated: bool} 安装结果
      */
     private function finishInstallation( string $pluginId, string $destination, ?string $backupPath = null ): array {
         $plugin = null;
@@ -172,6 +172,7 @@ class PluginInstaller {
                 'id' => $pluginId,
                 'name' => $plugin->name ?? $pluginId,
                 'version' => (string) $plugin->version,
+                'updated' => $backupPath !== null,
             ];
         }catch ( Throwable $throwable ) {
             $rollbackErrors = [];
@@ -294,24 +295,6 @@ class PluginInstaller {
                 File::delete( $file->getPathname() );
             }
         }
-    }
-
-    /**
-     * 检查插件是否已安装并禁止降级。
-     * @param string $pluginId 插件标识
-     * @param string $candidateVersion 待安装版本
-     * @param string $destination 正式目录
-     * @return void
-     */
-    private function assertNotInstalled( string $pluginId, string $candidateVersion, string $destination ): void {
-        if ( !file_exists( $destination ) ) { return; }
-        $installed = PluginProvider::load( $pluginId );
-        $installedVersion = $installed?->version;
-        if ( is_string( $installedVersion ) && Comparator::lessThan( $candidateVersion, $installedVersion ) ) {
-            throw new RuntimeException( "禁止将 {$pluginId} 从 {$installedVersion} 降级到 {$candidateVersion}。" );
-        }
-        $installedVersion = is_string( $installedVersion ) ? $installedVersion : '未知';
-        throw new RuntimeException( "{$pluginId} {$installedVersion} 已安装，请使用后续的插件更新功能。" );
     }
 
     /**

@@ -108,8 +108,9 @@ class PluginManagement extends Page {
             }else {
                 $result = $installer->installFromUrl( (string) ( $data['source_url'] ?? '' ) );
             }
+            $operation = ( $result['updated'] ?? false ) ? '更新' : '安装';
             Notification::make()
-                ->title( "{$result['name']} 安装成功" )
+                ->title( "{$result['name']} {$operation}成功" )
                 ->body( "插件标识：{$result['id']}，版本：{$result['version']}" )
                 ->success()
                 ->send();

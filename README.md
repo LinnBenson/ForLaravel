@@ -194,11 +194,11 @@ location / {
   - `$installer = app( PluginInstaller::class )`
 - 从上传文件安装
   - `$installer->installFromUpload( [UploadedFile]ZIP 压缩包 )`
-  - 在 `storage/framework/plugins` 临时目录中解压和校验，通过后移入 `app/Plugins`、调用 `install()`，失败时回滚数据库与插件目录
+  - 在 `storage/framework/plugins` 临时目录中解压和校验；插件未安装时执行安装，已安装时检测版本并在版本更高时自动更新，失败时回滚插件目录
   - return [array]已安装插件的标识、名称和版本
 - 从远程链接安装
   - `$installer->installFromUrl( [string]ZIP 来源链接 )`
-  - 支持逐跳校验的 HTTP/HTTPS 重定向，拒绝内网地址并限制下载与解压体积
+  - 支持逐跳校验的 HTTP/HTTPS 重定向，拒绝内网地址并限制下载与解压体积；已安装插件会自动检测版本更新
   - return [array]已安装插件的标识、名称和版本
 - 从远程链接更新
   - `$installer->updateFromUrl( [string]插件标识, [string]ZIP 来源链接 )`
