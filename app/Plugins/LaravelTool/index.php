@@ -18,7 +18,7 @@ return new class extends PluginProvider {
         $this->version = '1.0.5';
         $this->author = 'System';
         $this->setType( 1 );
-        $this->source = 'https://github.com/LinnBenson/LaravelDevelopment/releases/download/plugins-latest/LaravelTool.zip';
+        $this->source = 'https://github.com/LinnBenson/ForLaravel/releases/download/plugins-latest/LaravelTool.zip';
     }
     /**
      * 插件启动时执行的操作
