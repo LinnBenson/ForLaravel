@@ -209,6 +209,50 @@ location / {
   - 与远程更新共用版本校验、目录备份和失败回滚流程，供后续手动更新入口复用
   - return [array]更新后插件的标识、名称和版本
 
+## SMTP 连通性检测服务 [app/Plugins/MassEmailing/Services/SmtpConnectivityService.php]
+- 获取服务实例
+  - `$smtpConnectivity = app( \App\Plugins\MassEmailing\Services\SmtpConnectivityService::class )`
+- 检测 SMTP 配置模型
+  - `$smtpConnectivity->check( [Mail]SMTP 配置, [bool]是否保存结果 = true )`
+  - 建立 SMTP 连接并完成 TLS 与账号认证，不发送邮件；连通性检测会跳过 TLS 证书验证
+  - return [array]成功状态、连通状态、检测信息、检测时间和耗时
+- 按 SMTP 配置 ID 检测
+  - `$smtpConnectivity->checkById( [int]SMTP 配置ID )`
+  - 检测结果自动写入 `connection_status`、`last_checked_at` 和 `last_error`
+  - return [array]成功状态、连通状态、检测信息、检测时间和耗时
+
+## SMTP 连通性检测任务 [app/Plugins/MassEmailing/Support/CheckConnectivityJob.php]
+- 通过插件入口提交全部检测
+  - `plugin( 'MassEmailing' )->CheckConnectivity()`
+  - 先提交一个调度任务，再为每个已启用 SMTP 配置派发独立检测任务
+  - 单项检测失败不会阻止其他 SMTP 配置继续检测
+  - return [bool]是否成功提交调度任务
+
+## SMTP 批量导入服务 [app/Plugins/MassEmailing/Services/SmtpBatchImportService.php]
+- 获取服务实例
+  - `$smtpBatchImport = app( \App\Plugins\MassEmailing\Services\SmtpBatchImportService::class )`
+- 批量导入 SMTP 配置
+  - `$smtpBatchImport->import( [string]SMTP多行文本 )`
+  - 每行格式为 `服务器|端口|邮箱用户名|协议|密码`，邮件名称自动取邮箱用户名中 `@` 前的内容
+  - 支持 `smtp`、`smtps`、`tls`、`ssl` 协议；完全相同的服务器、端口、用户名和协议会跳过
+  - 使用插件 SQLite 连接事务写入；任意一行格式错误时不会写入整批数据
+  - return [array]导入数量 `imported` 与跳过数量 `skipped`
+
+## 发件日志模型 [app/Plugins/MassEmailing/Models/SendLog.php]
+- 创建发件日志
+  - `SendLog::query()->create( [string]title, [string]content, [array]receive, [array]report, [int]schedule )`
+  - `receive` 为接收邮箱数组，`report` 为以接收邮箱为键、发送状态为值的对象
+  - 发送状态：`0` 未发送、`1` 成功、`2` 失败
+- 获取接收人数量
+  - `$sendLog->recipient_count`
+  - return [int]接收邮箱数量
+- 获取发送进度
+  - `$sendLog->schedule_label`
+  - return [string]已发送数量/接收人总数
+- 统计指定发送状态
+  - `$sendLog->reportCount( [int]发送状态 )`
+  - return [int]对应状态的接收人数
+
 ## 用户模型 [app/Models/User.php]
 - 字段备注: Array `User::FIELD_COMMENTS`
 - 用户等级: Array `User::LEVELS`

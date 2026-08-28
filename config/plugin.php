@@ -8,6 +8,7 @@ return array (
     2 => 'PushNotifier',
     3 => 'NodeSubscription',
     4 => 'TikHubMedia',
+    5 => 'MassEmailing',
   ),
   'hooks' => 
   array (
