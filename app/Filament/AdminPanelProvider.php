@@ -9,6 +9,7 @@ use App\Filament\Resources\Dashboard\Home\HomeDashboard;
 use App\Filament\Resources\DeveloperCenter\LogInformation\LogInformation;
 use App\Filament\Resources\DeveloperCenter\Readme\Readme;
 use App\Filament\Resources\DeveloperCenter\FilamentIcons\FilamentIcons;
+use App\Filament\Resources\DeveloperCenter\RouteInformation\RouteInformation;
 use App\Filament\Resources\SystemSettings\SystemConfig\SystemConfigPage;
 use App\Filament\Resources\SystemSettings\ServiceManagement\ServiceManagement;
 use Filament\Http\Middleware\AuthenticateSession;
@@ -59,6 +60,7 @@ class AdminPanelProvider extends PanelProvider {
                 PluginManagement::class,
                 FilamentIcons::class,
                 LogInformation::class,
+                RouteInformation::class,
                 Readme::class,
                 SystemConfigPage::class,
                 ServiceManagement::class,

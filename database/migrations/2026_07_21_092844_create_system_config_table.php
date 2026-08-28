@@ -132,22 +132,6 @@ return new class extends Migration
                 'key' => 'system.mail.password',
                 'value' => config( 'mail.mailers.smtp.password' ) ?? '',
                 'description' => '用于配置邮箱 SMTP 密码'
-            ],
-            [
-                'category' => 'system',
-                'type' => 'url',
-                'name' => 'Bark 服务地址',
-                'key' => 'system.bark.host',
-                'value' => '',
-                'description' => '用于配置 Bark 的推送服务地址'
-            ],
-            [
-                'category' => 'system',
-                'type' => 'text',
-                'name' => 'Telegram Bot API',
-                'key' => 'system.telegram.api',
-                'value' => '',
-                'description' => '用于配置 Telegram Bot API'
             ]
         ];
         foreach ( $insertConfig as $index => $config ) {

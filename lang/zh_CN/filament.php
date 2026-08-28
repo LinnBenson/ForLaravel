@@ -16,6 +16,7 @@ return [
         'system_config' => '系统配置',
         'services' => '服务项管理',
         'logs' => '日志信息',
+        'routes' => '路由列表',
         'filament_icons' => 'Filament Icons',
         'readme' => 'README.md',
     ],
@@ -33,6 +34,7 @@ return [
         'system_config' => '系统配置',
         'services' => '服务项管理',
         'logs' => '日志信息',
+        'routes' => '路由列表',
     ],
     'actions' => [
         'send_message' => '发送信息',

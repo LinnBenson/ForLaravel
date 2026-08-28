@@ -16,6 +16,7 @@ return [
         'system_config' => 'System Configuration',
         'services' => 'Service Management',
         'logs' => 'Log Information',
+        'routes' => 'Route List',
         'filament_icons' => 'Filament Icons',
         'readme' => 'README.md',
     ],
@@ -33,6 +34,7 @@ return [
         'system_config' => 'System Configuration',
         'services' => 'Service Management',
         'logs' => 'Log Information',
+        'routes' => 'Route List',
     ],
     'actions' => [
         'send_message' => 'Send message',

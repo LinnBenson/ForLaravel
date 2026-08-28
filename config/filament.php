@@ -20,6 +20,7 @@ return [
         'system_config' => 90000,
         'service_management' => 99900,
         'log_information' => 99900,
+        'route_information' => 99900,
         'filament_icons' => 99900,
         'readme' => 99900,
     ],
