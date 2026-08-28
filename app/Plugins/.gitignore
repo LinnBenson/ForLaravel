@@ -1,6 +1,4 @@
 *
-!/LaravelTool/
-!/LaravelTool/**
-!/ToView/
-!/ToView/**
+!/PluginManage/
+!/PluginManage/**
 !.gitignore

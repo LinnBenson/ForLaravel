@@ -1,0 +1,100 @@
+<?php
+
+use App\Filament\Concerns\AdminLevel;
+use App\Plugins\PluginManage\Controllers\AdminController;
+use App\Plugins\PluginManage\Controllers\MarketController;
+use App\Plugins\PluginManage\Support\PackagesTable;
+use App\Providers\PluginProvider;
+use App\Plugins\PluginManage\Models\Packages;
+use Filament\Panel;
+use Illuminate\Support\Facades\Route;
+
+/**
+ * Plugin Manage
+ * 私有部署的插件市场系统
+ */
+return new class extends PluginProvider {
+    /**
+     * 插件信息
+     */
+    public function __construct() {
+        $this->name = '插件市场';
+        $this->description = '私有部署的插件市场系统';
+        $this->version = '1.0.0';
+        $this->author = 'Todu.io';
+    }
+
+    /**
+     * 注册插件 Hook。
+     * @return void
+     */
+    public function boot(): void {
+        $this->hook( 'APP_SERVICE_PROVIDER_BOOT', 'register' );
+        $this->hook( 'ADMIN_PANEL_PROVIDER_PANEL', 'registerAdminPage' );
+    }
+
+    /**
+     * 注册插件管理路由与数据库连接。
+     * @return void
+     */
+    public function register(): void {
+        $databasePath = "{$this->path}Database/database.sqlite";
+        if ( !file_exists( $databasePath ) && file_put_contents( $databasePath, '' ) === false ) {
+            throw new RuntimeException( 'Unable to create the SQLite database file.' );
+        }
+        config()->set( 'database.connections.plugin-manage', [
+            'driver' => 'sqlite',
+            'url' => null,
+            'database' => $databasePath,
+            'prefix' => 'Todu_',
+            'foreign_key_constraints' => true,
+            'busy_timeout' => 5000,
+            'journal_mode' => 'WAL',
+            'synchronous' => 'NORMAL',
+        ]);
+        app( 'view' )->addNamespace( 'PluginManage', "{$this->path}Views" );
+        Route::post( "{$this->config( 'entrance' )}/upload", [MarketController::class, 'upload'] )->name( 'plugins.plugin-manage.upload' );
+        Route::get( "{$this->config( 'entrance' )}/download/{name}", [MarketController::class, 'download'] )->name( 'plugins.plugin-manage.download' );
+        Route::get( "{$this->config( 'entrance' )}/list", [MarketController::class, 'list'] )->name( 'plugins.plugin-manage.list' );
+        Route::middleware( AdminLevel::class )
+            ->prefix( config( 'app.admin_path' ).'/plugins/plugin-manage' )
+            ->name( 'plugins.plugin-manage.' )
+            ->group( function (): void {
+                Route::post( '/rebuild-tables', [AdminController::class, 'rebuild'] )->name( 'rebuild-tables' );
+            } );
+    }
+
+    /**
+     * 注册后台插件包管理页面。
+     * @param Panel $panel Filament 面板
+     * @return void
+     */
+    public function registerAdminPage( Panel $panel ): void {
+        config()->set( 'filament.navigation_levels.log_information', config( 'filament.navigation_levels.log_information', 99900 ) );
+        $panel->pages( [
+            PackagesTable::class,
+        ] );
+    }
+
+    /**
+     * 安装插件。
+     * 创建插件包数据表。
+     * @return bool 安装成功返回 true
+     */
+    public function install(): bool {
+        $this->register();
+        Packages::up();
+        return true;
+    }
+
+    /**
+     * 卸载插件。
+     * 删除插件包数据表。
+     * @return bool 卸载成功返回 true
+     */
+    public function uninstall(): bool {
+        $this->register();
+        Packages::down();
+        return true;
+    }
+};

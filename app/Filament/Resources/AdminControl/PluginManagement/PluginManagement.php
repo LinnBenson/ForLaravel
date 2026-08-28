@@ -4,6 +4,8 @@ namespace App\Filament\Resources\AdminControl\PluginManagement;
 
 use App\Filament\Concerns\HasNavigationLevel;
 use App\Filament\Resources\AdminControl\PluginManagement\Services\PluginInstaller;
+use App\Filament\Resources\AdminControl\PluginManagement\Services\PluginMarket;
+use App\Filament\Resources\AdminControl\PluginManagement\Services\PluginPublisher;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Forms\Components\FileUpload;
@@ -42,6 +44,15 @@ class PluginManagement extends Page {
 
     protected string $view = 'Filament::AdminControl.PluginManagement.plugin-management';
 
+    /** @var array<int, array<string, mixed>> */
+    public array $marketPackages = [];
+    /** @var array<string, bool> */
+    public array $marketInstalled = [];
+    public string $marketKeyword = '';
+    public int $marketTotal = 0;
+    public int $marketPage = 1;
+    public int $marketQuantity = 1;
+
     /**
      * 获取头部操作。
      * 提供压缩包上传或远程链接安装入口。
@@ -49,6 +60,23 @@ class PluginManagement extends Page {
      */
     protected function getHeaderActions(): array {
         return [
+            Action::make( 'pluginMarket' )
+                ->label( '插件市场' )
+                ->icon( Heroicon::OutlinedShoppingBag )
+                ->color( 'gray' )
+                ->visible( fn (): bool => PluginMarket::isConfigured() )
+                ->mountUsing( function (): void {
+                    $this->marketKeyword = '';
+                    $this->loadMarket( 1 );
+                } )
+                ->modalIcon( Heroicon::OutlinedShoppingBag )
+                ->modalHeading( '插件市场' )
+                ->modalDescription( '浏览远程插件市场中的可用插件。' )
+                ->modalContent( fn () => view( 'Filament::AdminControl.PluginManagement.plugin-market' ) )
+                ->modalWidth( '5xl' )
+                ->extraModalWindowAttributes( ['class' => 'plugin-market-modal'] )
+                ->modalSubmitAction( false )
+                ->modalCancelActionLabel( '关闭' ),
             Action::make( 'installPlugin' )
                 ->label( '安装插件' )
                 ->icon( Heroicon::OutlinedArrowDownTray )
@@ -90,6 +118,73 @@ class PluginManagement extends Page {
                 ->modalCancelActionLabel( '取消' )
                 ->action( fn ( array $data ): mixed => $this->installPlugin( $data ) ),
         ];
+    }
+
+    /**
+     * 搜索插件市场。
+     * @return void
+     */
+    public function searchMarket(): void { $this->loadMarket( 1 ); }
+
+    /**
+     * 加载上一页插件市场数据。
+     * @return void
+     */
+    public function previousMarketPage(): void { $this->loadMarket( max( $this->marketPage - 1, 1 ) ); }
+
+    /**
+     * 加载下一页插件市场数据。
+     * @return void
+     */
+    public function nextMarketPage(): void { $this->loadMarket( min( $this->marketPage + 1, $this->marketQuantity ) ); }
+
+    /**
+     * 安装市场插件。
+     * @param string $pluginId 插件标识
+     * @return void
+     */
+    public function installMarketPlugin( string $pluginId ): void {
+        try {
+            $result = app( PluginMarket::class )->install( $pluginId );
+            $this->marketInstalled[$pluginId] = true;
+            Notification::make()
+                ->title( "{$result['name']} 安装成功" )
+                ->body( "插件标识：{$result['id']}，版本：{$result['version']}" )
+                ->success()
+                ->send();
+        }catch ( Throwable $throwable ) {
+            report( $throwable );
+            Notification::make()->title( '插件安装失败' )->body( $throwable->getMessage() )->danger()->send();
+        }
+    }
+
+    /**
+     * 加载插件市场分页数据。
+     * @param int $page 页码
+     * @return void
+     */
+    private function loadMarket( int $page ): void {
+        try {
+            $result = app( PluginMarket::class )->getList( $page, $this->marketKeyword );
+            $this->marketPackages = $result['data'];
+            $this->marketInstalled = [];
+            foreach ( $this->marketPackages as $package ) {
+                $pluginId = (string) ( $package['rid'] ?? '' );
+                if ( preg_match( '/^[A-Za-z][A-Za-z0-9_-]*$/', $pluginId ) !== 1 ) { continue; }
+                $this->marketInstalled[$pluginId] = is_dir( app_path( "Plugins/{$pluginId}" ) );
+            }
+            $this->marketTotal = $result['total'];
+            $this->marketPage = $result['page'];
+            $this->marketQuantity = $result['quantity'];
+        }catch ( Throwable $throwable ) {
+            report( $throwable );
+            $this->marketPackages = [];
+            $this->marketInstalled = [];
+            $this->marketTotal = 0;
+            $this->marketPage = 1;
+            $this->marketQuantity = 1;
+            Notification::make()->title( '插件市场加载失败' )->body( $throwable->getMessage() )->danger()->send();
+        }
     }
 
     /**
@@ -342,7 +437,7 @@ class PluginManagement extends Page {
      * @return void
      */
     public function switchPluginDetailsAction( string $action, array $arguments ): void {
-        if ( !in_array( $action, ['trustHooks', 'cancelHooks', 'editConfig', 'managePlugin', 'updatePlugin'], true ) ) {
+        if ( !in_array( $action, ['trustHooks', 'cancelHooks', 'editConfig', 'managePlugin', 'updatePlugin', 'publishPlugin'], true ) ) {
             throw new RuntimeException( '插件操作无效。' );
         }
         $pluginId = (string) ( $arguments['pluginId'] ?? '' );
@@ -389,17 +484,48 @@ class PluginManagement extends Page {
                 $plugin = $this->resolvePlugin( (string) ( $arguments['pluginId'] ?? '' ) );
                 return "更新 {$plugin->name}？";
             } )
-            ->modalDescription( '将从插件声明的来源链接下载并安装更高版本。' )
+            ->modalDescription( function ( array $arguments ): string {
+                $plugin = $this->resolvePlugin( (string) ( $arguments['pluginId'] ?? '' ) );
+                return $plugin->source === 'market'
+                    ? '将从插件市场下载并安装更高版本。'
+                    : '将从插件声明的来源链接下载并安装更高版本。';
+            } )
             ->modalContent( function( array $arguments ) {
                 $plugin = $this->resolvePlugin( (string) ( $arguments['pluginId'] ?? '' ) );
                 return view( 'Filament::AdminControl.PluginManagement.update-plugin-source', [
-                    'source' => (string) $plugin->source,
+                    'source' => $plugin->source === 'market' ? '插件市场' : (string) $plugin->source,
                 ] );
             } )
             ->modalSubmitActionLabel( '确认更新' )
             ->modalCancelActionLabel( '取消' )
             ->color( 'primary' )
             ->action( fn ( array $arguments ): mixed => $this->updatePlugin( (string) ( $arguments['pluginId'] ?? '' ) ) );
+    }
+
+    /**
+     * 上传插件操作。
+     * 将本地插件打包后上传至配置的插件管理服务，本地插件目录不会被修改。
+     * @return Action 插件上传操作
+     */
+    public function publishPluginAction(): Action {
+        return Action::make( 'publishPlugin' )
+            ->requiresConfirmation()
+            ->modalIcon( Heroicon::OutlinedCloudArrowUp )
+            ->modalHeading( fn ( array $arguments ): string => "上传插件 {$arguments['pluginId']}？" )
+            ->modalDescription( '系统会临时打包当前插件并上传，本地插件及其数据不会被删除或修改。' )
+            ->modalSubmitActionLabel( '确认上传' )
+            ->modalCancelActionLabel( '取消' )
+            ->color( 'primary' )
+            ->action( function ( array $arguments ): void {
+                $pluginId = (string) ( $arguments['pluginId'] ?? '' );
+                try {
+                    app( PluginPublisher::class )->publish( $pluginId );
+                    Notification::make()->title( "{$pluginId} 上传成功" )->success()->send();
+                }catch ( Throwable $throwable ) {
+                    report( $throwable );
+                    Notification::make()->title( '插件上传失败' )->body( $throwable->getMessage() )->danger()->send();
+                }
+            } );
     }
 
     /**
@@ -558,7 +684,14 @@ class PluginManagement extends Page {
             $plugin = $this->resolvePlugin( $id );
             $source = is_string( $plugin->source ) ? trim( $plugin->source ) : '';
             if ( $source === '' ) { throw new RuntimeException( '该插件未声明来源链接。' ); }
-            $result = app( PluginInstaller::class )->updateFromUrl( $id, $source );
+            if ( $source === 'market' ) {
+                if ( !PluginMarket::isConfigured() ) {
+                    throw new RuntimeException( 'PLUGIN_DOWNLOAD_URL 或 PLUGIN_DOWNLOAD_TOKEN 未配置。' );
+                }
+                $result = app( PluginMarket::class )->update( $id );
+            }else {
+                $result = app( PluginInstaller::class )->updateFromUrl( $id, $source );
+            }
             Notification::make()
                 ->title( "{$result['name']} 更新成功" )
                 ->body( "已更新至 {$result['version']}" )

@@ -1,7 +1,7 @@
 <?php
 
 return array (
-  'enabled' =>
+  'enabled' => 
   array (
     0 => 'ToView',
     1 => 'LaravelTool',
@@ -9,8 +9,9 @@ return array (
     3 => 'NodeSubscription',
     4 => 'TikHubMedia',
     5 => 'MassEmailing',
+    6 => 'PluginManage',
   ),
-  'hooks' =>
+  'hooks' => 
   array (
     'APP_SERVICE_PROVIDER_REGISTER' => '应用服务注册时调用权限',
     'APP_SERVICE_PROVIDER_BOOT' => '应用服务启动时调用权限',

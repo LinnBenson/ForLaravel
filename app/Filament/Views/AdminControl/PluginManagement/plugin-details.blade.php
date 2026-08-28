@@ -10,7 +10,7 @@
         </div>
     </div>
 
-    @if ( $plugin['has_hooks'] || $plugin['has_config'] || $plugin['has_admin'] || $plugin['has_source'] )
+    @if ( $plugin['has_hooks'] || $plugin['has_config'] || $plugin['has_admin'] || $plugin['has_source'] || \App\Filament\Resources\AdminControl\PluginManagement\Services\PluginPublisher::isConfigured() )
         <div class="plugin-details-actions">
             @if ( $plugin['has_hooks'] )
                 @if ( $plugin['hooks_trusted'] )
@@ -61,6 +61,16 @@
                     wire:click="switchPluginDetailsAction('updatePlugin', {{ \Illuminate\Support\Js::from(['pluginId' => $plugin['id']]) }})"
                 >
                     更新插件
+                </x-filament::button>
+            @endif
+            @if ( \App\Filament\Resources\AdminControl\PluginManagement\Services\PluginPublisher::isConfigured() )
+                <x-filament::button
+                    size="sm"
+                    color="primary"
+                    icon="heroicon-o-cloud-arrow-up"
+                    wire:click="switchPluginDetailsAction('publishPlugin', {{ \Illuminate\Support\Js::from(['pluginId' => $plugin['id']]) }})"
+                >
+                    上传插件
                 </x-filament::button>
             @endif
         </div>
