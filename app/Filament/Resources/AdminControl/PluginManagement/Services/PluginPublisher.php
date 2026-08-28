@@ -111,6 +111,7 @@ class PluginPublisher {
         try {
             $root = rtrim( realpath( $pluginPath ) ?: '', DIRECTORY_SEPARATOR );
             if ( $root === '' ) { throw new RuntimeException( '插件目录不存在。' ); }
+            $privateFiles = $this->getPrivateFiles( $root );
             $zip->addEmptyDir( $pluginId );
             $iterator = new RecursiveIteratorIterator(
                 new RecursiveDirectoryIterator( $root, FilesystemIterator::SKIP_DOTS ),
@@ -120,6 +121,7 @@ class PluginPublisher {
                 if ( !$file->isFile() || $file->isLink() ) { continue; }
                 $relativePath = substr( $file->getPathname(), strlen( $root ) + 1 );
                 if ( preg_match( '#(^|/)\.git(/|$)#', $relativePath ) === 1 ) { continue; }
+                if ( isset( $privateFiles[$relativePath] ) ) { continue; }
                 if ( !$zip->addFile( $file->getPathname(), "{$pluginId}/{$relativePath}" ) ) {
                     throw new RuntimeException( "插件文件加入压缩包失败：{$relativePath}" );
                 }
@@ -131,5 +133,42 @@ class PluginPublisher {
         }
         if ( !$zip->close() || !is_file( $archivePath ) ) { throw new RuntimeException( '插件压缩包写入失败。' ); }
         return $archivePath;
+    }
+
+    /**
+     * 获取打包时需要排除的私有文件。
+     * .private 每行保存一个插件根目录下的相对文件路径。
+     * @param string $pluginRoot 插件根目录
+     * @return array<string, true> 排除文件映射
+     */
+    private function getPrivateFiles( string $pluginRoot ): array {
+        $privatePath = "{$pluginRoot}/.private";
+        $privateFiles = ['.private' => true];
+        if ( !file_exists( $privatePath ) ) { return $privateFiles; }
+        if ( !is_file( $privatePath ) || !is_readable( $privatePath ) ) {
+            throw new RuntimeException( '插件 .private 文件不可读。' );
+        }
+        if ( filesize( $privatePath ) > 1048576 ) { throw new RuntimeException( '插件 .private 文件不能超过 1 MB。' ); }
+        $lines = file( $privatePath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES );
+        if ( $lines === false ) { throw new RuntimeException( '插件 .private 文件读取失败。' ); }
+        foreach ( $lines as $line ) {
+            $relativePath = trim( str_replace( '\\', '/', $line ) );
+            if ( $relativePath === '' || str_starts_with( $relativePath, '#' ) ) { continue; }
+            $relativePath = preg_replace( '#^\./+#', '', $relativePath ) ?? $relativePath;
+            if (
+                str_starts_with( $relativePath, '/' ) ||
+                str_contains( $relativePath, "\0" ) ||
+                preg_match( '#(^|/)\.\.(/|$)#', $relativePath ) === 1
+            ) {
+                throw new RuntimeException( "插件 .private 包含无效路径：{$relativePath}" );
+            }
+            $privateFiles[$relativePath] = true;
+            if ( str_ends_with( strtolower( $relativePath ), '.sqlite' ) ) {
+                $privateFiles["{$relativePath}-wal"] = true;
+                $privateFiles["{$relativePath}-shm"] = true;
+                $privateFiles["{$relativePath}-journal"] = true;
+            }
+        }
+        return $privateFiles;
     }
 }

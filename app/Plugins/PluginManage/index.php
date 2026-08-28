@@ -21,7 +21,7 @@ return new class extends PluginProvider {
         $this->name = '插件市场';
         $this->description = '私有部署的插件市场系统';
         $this->version = '1.0.0';
-        $this->author = 'Todu.io';
+        $this->author = 'System';
     }
 
     /**
