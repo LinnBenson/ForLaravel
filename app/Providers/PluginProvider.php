@@ -131,6 +131,7 @@ class PluginProvider {
      * @return mixed 钩子回调返回值
      */
     public static function runHook( string $name, ...$args ): mixed {
+        if ( $name === 'REBUILD_PLUGIN_DATA' ) { throw new LogicException( "Hook {$name} cannot be called." ); }
         if ( !array_key_exists( $name, config( 'plugin.hooks', [] ) ) ) {
             throw new LogicException( "Hook {$name} is not registered." );
         }
