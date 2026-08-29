@@ -207,15 +207,16 @@ class PluginProvider {
      * 注册 SQLite 数据库连接。
      * @param string $name 连接名称
      * @param string $file 数据库文件名
+     * @param array<string, mixed> $options 连接选项
      * @return bool 注册成功返回 true，失败返回 false
      */
-    public function sqlite( string $name, string $file ): bool {
+    public function sqlite( string $name, string $file, array $options = [] ): bool {
         $databasePath = "{$this->path}Database/{$file}";
         if ( !file_exists( $databasePath ) && file_put_contents( $databasePath, '' ) === false ) {
             throw new RuntimeException( 'Unable to create the SQLite database file.' );
             return false;
         }
-        config()->set( "database.connections.{$name}", [
+        config()->set( "database.connections.{$name}", array_merge([
             'driver' => 'sqlite',
             'url' => null,
             'database' => $databasePath,
@@ -224,7 +225,7 @@ class PluginProvider {
             'busy_timeout' => 5000,
             'journal_mode' => 'WAL',
             'synchronous' => 'NORMAL',
-        ]);
+        ], $options ));
         return true;
     }
 

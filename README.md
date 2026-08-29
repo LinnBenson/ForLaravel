@@ -177,7 +177,7 @@ location / {
   - `$plugin->getHook()`
   - return [array]当前插件已注册的钩子回调
 - 注册 SQLite 数据库连接
-  - `$plugin->sqlite( [string]连接名称, [string]数据库文件名 )`
+  - `$plugin->sqlite( [string]连接名称, [string]数据库文件名, [array<string, mixed>]连接选项 = [] )`
   - return [bool]注册成功返回 true，失败返回 false
 - 获取插件配置
   - `$plugin->config( [string]配置名称, [mixed]默认值 = null )`
