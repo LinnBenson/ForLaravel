@@ -16,10 +16,8 @@ class IndexController extends Controller {
         $lang = null;
         $langs = $request->query( 'langs' );
         if ( is_string( $langs ) && $langs !== '' ) {
-            $allowedLangs = [ 'base', 'validation' ]; // 允许的语言包名称列表
             $requestedLangs = array_unique( array_filter( explode( '|', $langs ) ) );
             foreach ( $requestedLangs as $langName ) {
-                if ( !in_array( $langName, $allowedLangs, true ) ) { continue; }
                 $translations = Lang::get( $langName, [], app()->getLocale() );
                 if ( is_array( $translations ) ) { $lang[$langName] = $translations; }
             }
