@@ -20,7 +20,7 @@ return new class extends PluginProvider {
     public function __construct() {
         $this->name = '插件市场';
         $this->description = '私有部署的插件市场系统';
-        $this->version = '1.0.0';
+        $this->version = '1.0.1';
         $this->author = 'System';
     }
 
@@ -31,6 +31,11 @@ return new class extends PluginProvider {
     public function boot(): void {
         $this->hook( 'APP_SERVICE_PROVIDER_BOOT', 'register' );
         $this->hook( 'ADMIN_PANEL_PROVIDER_PANEL', 'registerAdminPage' );
+        $this->hook( 'REBUILD_PLUGIN_DATA', function() {
+            Packages::down();
+            Packages::up();
+            return true;
+        });
     }
 
     /**
@@ -38,30 +43,27 @@ return new class extends PluginProvider {
      * @return void
      */
     public function register(): void {
-        $databasePath = "{$this->path}Database/database.sqlite";
-        if ( !file_exists( $databasePath ) && file_put_contents( $databasePath, '' ) === false ) {
-            throw new RuntimeException( 'Unable to create the SQLite database file.' );
-        }
-        config()->set( 'database.connections.plugin-manage', [
-            'driver' => 'sqlite',
-            'url' => null,
-            'database' => $databasePath,
-            'prefix' => 'Todu_',
-            'foreign_key_constraints' => true,
-            'busy_timeout' => 5000,
-            'journal_mode' => 'WAL',
-            'synchronous' => 'NORMAL',
-        ]);
-        app( 'view' )->addNamespace( 'PluginManage', "{$this->path}Views" );
+        /**
+         * 注册命名空间
+         */
+        $namespace = 'PluginManage';
+        app( 'view' )->addNamespace( $namespace, "{$this->path}Views" );
+        /**
+         * 注册路由
+         */
         Route::post( "{$this->config( 'entrance' )}/upload", [MarketController::class, 'upload'] )->name( 'plugins.plugin-manage.upload' );
         Route::get( "{$this->config( 'entrance' )}/download/{name}", [MarketController::class, 'download'] )->name( 'plugins.plugin-manage.download' );
         Route::get( "{$this->config( 'entrance' )}/list", [MarketController::class, 'list'] )->name( 'plugins.plugin-manage.list' );
         Route::middleware( AdminLevel::class )
-            ->prefix( config( 'app.admin_path' ).'/plugins/plugin-manage' )
-            ->name( 'plugins.plugin-manage.' )
-            ->group( function (): void {
-                Route::post( '/rebuild-tables', [AdminController::class, 'rebuild'] )->name( 'rebuild-tables' );
-            } );
+        ->prefix( config( 'app.admin_path' ).'/plugins/plugin-manage' )
+        ->name( 'plugins.plugin-manage.' )
+        ->group(function(): void {
+            Route::post( '/rebuild-tables', [AdminController::class, 'rebuild'] )->name( 'rebuild-tables' );
+        });
+        /**
+         * 注册数据库连接
+         */
+        $this->sqlite( 'plugin-manage', 'database.sqlite' );
     }
 
     /**
