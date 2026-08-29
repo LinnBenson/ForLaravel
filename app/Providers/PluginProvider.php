@@ -216,11 +216,13 @@ class PluginProvider {
             throw new RuntimeException( 'Unable to create the SQLite database file.' );
             return false;
         }
+        $prefix = substr( preg_replace( '/[^A-Za-z]/', '', (string) $this->id ) ?? '', 0, 15 );
+        if ( $prefix === '' ) { $prefix = 'sqlite'; }
         config()->set( "database.connections.{$name}", array_merge([
             'driver' => 'sqlite',
             'url' => null,
             'database' => $databasePath,
-            'prefix' => "{$this->id}_",
+            'prefix' => "{$prefix}_",
             'foreign_key_constraints' => true,
             'busy_timeout' => 5000,
             'journal_mode' => 'WAL',
