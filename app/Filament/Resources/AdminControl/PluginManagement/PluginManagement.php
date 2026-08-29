@@ -416,6 +416,7 @@ class PluginManagement extends Page {
                         'hooks' => $hooks,
                         'has_config' => $plugin->config( '' ) !== [],
                         'has_hooks' => $hooks !== [],
+                        'has_rebuild_hook' => array_key_exists( 'REBUILD_PLUGIN_DATA', $plugin->getHook() ),
                         'hooks_trusted' => in_array( (string) $plugin->id, $enabledPlugins, true ),
                         'has_admin' => is_file( "{$plugin->path}admin.php" ) && is_readable( "{$plugin->path}admin.php" ),
                         'has_source' => is_string( $plugin->source ) && trim( $plugin->source ) !== '',
@@ -437,7 +438,7 @@ class PluginManagement extends Page {
      * @return void
      */
     public function switchPluginDetailsAction( string $action, array $arguments ): void {
-        if ( !in_array( $action, ['trustHooks', 'cancelHooks', 'editConfig', 'managePlugin', 'updatePlugin', 'publishPlugin'], true ) ) {
+        if ( !in_array( $action, ['trustHooks', 'cancelHooks', 'rebuildPluginData', 'editConfig', 'managePlugin', 'updatePlugin', 'publishPlugin'], true ) ) {
             throw new RuntimeException( '插件操作无效。' );
         }
         $pluginId = (string) ( $arguments['pluginId'] ?? '' );
@@ -572,6 +573,23 @@ class PluginManagement extends Page {
     }
 
     /**
+     * 重建插件数据操作。
+     * 确认后执行当前插件申请的 REBUILD_PLUGIN_DATA Hook。
+     * @return Action 插件数据重建操作
+     */
+    public function rebuildPluginDataAction(): Action {
+        return Action::make( 'rebuildPluginData' )
+            ->requiresConfirmation()
+            ->modalIcon( Heroicon::OutlinedArrowPath )
+            ->modalHeading( fn ( array $arguments ): string => "重建 {$arguments['pluginId']} 的插件数据？" )
+            ->modalDescription( '该操作将调用插件提供的数据重建方法，请确认后继续。' )
+            ->modalSubmitActionLabel( '确认重建' )
+            ->modalCancelActionLabel( '返回' )
+            ->color( 'danger' )
+            ->action( fn ( array $arguments ): mixed => $this->rebuildPluginData( (string) ( $arguments['pluginId'] ?? '' ) ) );
+    }
+
+    /**
      * 修改插件配置操作。
      * 以 JSON 格式编辑插件配置并保存用户配置文件。
      * @return Action 插件配置操作
@@ -652,6 +670,25 @@ class PluginManagement extends Page {
             Notification::make()->title( "已取消 {$id} 的 Hook 信任" )->success()->send();
         }catch ( Throwable $throwable ) {
             Notification::make()->title( 'Hook 信任取消失败' )->body( $throwable->getMessage() )->danger()->send();
+        }
+    }
+
+    /**
+     * 重建插件数据。
+     * 调用指定插件的 REBUILD_PLUGIN_DATA Hook，避免触发其他插件的重建逻辑。
+     * @param string $id 插件标识
+     * @return void
+     */
+    private function rebuildPluginData( string $id ): void {
+        try {
+            $plugin = $this->resolvePlugin( $id );
+            $callback = $plugin->getHook()['REBUILD_PLUGIN_DATA'] ?? null;
+            if ( !is_callable( $callback ) ) { throw new RuntimeException( '该插件没有申请数据重建 Hook。' ); }
+            if ( $callback() === false ) { throw new RuntimeException( '插件数据重建方法执行失败。' ); }
+            Notification::make()->title( "{$id} 插件数据重建成功" )->success()->send();
+        }catch ( Throwable $throwable ) {
+            report( $throwable );
+            Notification::make()->title( '插件数据重建失败' )->body( $throwable->getMessage() )->danger()->send();
         }
     }
 

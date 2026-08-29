@@ -176,6 +176,9 @@ location / {
 - 获取插件钩子
   - `$plugin->getHook()`
   - return [array]当前插件已注册的钩子回调
+- 注册 SQLite 数据库连接
+  - `$plugin->sqlite( [string]连接名称, [string]数据库文件名 )`
+  - return [bool]注册成功返回 true，失败返回 false
 - 获取插件配置
   - `$plugin->config( [string]配置名称, [mixed]默认值 = null )`
   - 合并插件目录 `config.php` 与 `config/plugin/{插件标识}.php`，用户配置递归覆盖插件默认配置，并支持 `database.host` 点号读取

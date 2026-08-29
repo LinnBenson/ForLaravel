@@ -10,7 +10,7 @@
         </div>
     </div>
 
-    @if ( $plugin['has_hooks'] || $plugin['has_config'] || $plugin['has_admin'] || $plugin['has_source'] || \App\Filament\Resources\AdminControl\PluginManagement\Services\PluginPublisher::isConfigured() )
+    @if ( $plugin['has_hooks'] || $plugin['has_rebuild_hook'] || $plugin['has_config'] || $plugin['has_admin'] || $plugin['has_source'] || \App\Filament\Resources\AdminControl\PluginManagement\Services\PluginPublisher::isConfigured() )
         <div class="plugin-details-actions">
             @if ( $plugin['has_hooks'] )
                 @if ( $plugin['hooks_trusted'] )
@@ -32,6 +32,16 @@
                         信任 Hook
                     </x-filament::button>
                 @endif
+            @endif
+            @if ( $plugin['has_rebuild_hook'] )
+                <x-filament::button
+                    size="sm"
+                    color="danger"
+                    icon="heroicon-o-arrow-path"
+                    wire:click="switchPluginDetailsAction('rebuildPluginData', {{ \Illuminate\Support\Js::from(['pluginId' => $plugin['id']]) }})"
+                >
+                    重建数据
+                </x-filament::button>
             @endif
             @if ( $plugin['has_config'] )
                 <x-filament::button
