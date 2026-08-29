@@ -51,12 +51,19 @@ return new class extends PluginProvider {
         /**
          * 注册路由
          */
-        Route::post( "{$this->config( 'entrance' )}/upload", [MarketController::class, 'upload'] )->name( 'plugins.plugin-manage.upload' );
-        Route::get( "{$this->config( 'entrance' )}/download/{name}", [MarketController::class, 'download'] )->name( 'plugins.plugin-manage.download' );
-        Route::get( "{$this->config( 'entrance' )}/list", [MarketController::class, 'list'] )->name( 'plugins.plugin-manage.list' );
+        $routerName = "plugin.plugin-manage";
+        // 普通路由
+        Route::prefix( $this->config( 'entrance' ) )
+        ->name( "{$routerName}." )
+        ->group(function(): void {
+            Route::post( "/upload", [MarketController::class, 'upload'] )->name( 'upload' );
+            Route::get( "/download/{name}", [MarketController::class, 'download'] )->name( 'download' );
+            Route::get( "/list", [MarketController::class, 'list'] )->name( 'list' );
+        });
+        // 管理路由
         Route::middleware( AdminLevel::class )
         ->prefix( config( 'app.admin_path' ).'/plugins/plugin-manage' )
-        ->name( 'plugins.plugin-manage.' )
+        ->name( "{$routerName}." )
         ->group(function(): void {
             Route::post( '/rebuild-tables', [AdminController::class, 'rebuild'] )->name( 'rebuild-tables' );
         });
