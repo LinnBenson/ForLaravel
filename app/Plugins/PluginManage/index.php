@@ -20,7 +20,7 @@ return new class extends PluginProvider {
     public function __construct() {
         $this->name = '插件市场';
         $this->description = '私有部署的插件市场系统';
-        $this->version = '1.0.1';
+        $this->version = '1.0.2';
         $this->author = 'System';
     }
 
@@ -62,7 +62,7 @@ return new class extends PluginProvider {
         });
         // 管理路由
         Route::middleware( AdminLevel::class )
-        ->prefix( config( 'app.admin_path' ).'/plugins/plugin-manage' )
+        ->prefix( '/'.config( 'filament.path' ).'/plugin/plugin-manage' )
         ->name( "{$routerName}." )
         ->group(function(): void {
             Route::post( '/rebuild-tables', [AdminController::class, 'rebuild'] )->name( 'rebuild-tables' );
