@@ -6,6 +6,7 @@
 .user.ini
 .phpunit.result.cache
 .well-known
+composer.lock
 /.phpunit.cache
 /.vscode
 /storage/*.key

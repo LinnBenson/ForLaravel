@@ -1,7 +1,7 @@
 <?php
 
 return array (
-  'enabled' => 
+  'enabled' =>
   array (
     0 => 'ToView',
     1 => 'LaravelTool',
@@ -12,7 +12,7 @@ return array (
     6 => 'PluginManage',
     7 => 'Account',
   ),
-  'hooks' => 
+  'hooks' =>
   array (
     'APP_SERVICE_PROVIDER_REGISTER' => '应用服务注册时调用权限',
     'APP_SERVICE_PROVIDER_BOOT' => '应用服务启动时调用权限',
