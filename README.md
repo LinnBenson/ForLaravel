@@ -208,26 +208,6 @@ location / {
     - 重建插件数据时调用权限
     - return [bool]重建结果
 
-## 插件安装服务 [app/Filament/Resources/AdminControl/PluginManagement/Services/PluginInstaller.php]
-- 获取服务实例
-  - `$installer = app( PluginInstaller::class )`
-- 从上传文件安装
-  - `$installer->installFromUpload( [UploadedFile]ZIP 压缩包 )`
-  - 在 `storage/framework/plugins` 临时目录中解压和校验；插件未安装时执行安装，已安装时检测版本并在版本更高时自动更新，失败时回滚插件目录
-  - return [array]已安装插件的标识、名称和版本
-- 从远程链接安装
-  - `$installer->installFromUrl( [string]ZIP 来源链接 )`
-  - 支持逐跳校验的 HTTP/HTTPS 重定向，拒绝内网地址并限制下载与解压体积；已安装插件会自动检测版本更新
-  - return [array]已安装插件的标识、名称和版本
-- 从远程链接更新
-  - `$installer->updateFromUrl( [string]插件标识, [string]ZIP 来源链接 )`
-  - 更新包标识必须与已安装插件一致且版本必须更高；更新前备份旧目录，新版本安装失败时自动恢复
-  - return [array]更新后插件的标识、名称和版本
-- 从上传文件更新
-  - `$installer->updateFromUpload( [string]插件标识, [UploadedFile]ZIP 压缩包 )`
-  - 与远程更新共用版本校验、目录备份和失败回滚流程，供后续手动更新入口复用
-  - return [array]更新后插件的标识、名称和版本
-
 ## 用户模型 [app/Models/User.php]
 - 字段备注: Array `User::FIELD_COMMENTS`
 - 用户等级: Array `User::LEVELS`
@@ -298,12 +278,6 @@ location / {
           ->sendToDatabase( $user ); // 接收者必填；第二参数可选，是否广播刷新事件，默认 false
   } );
   ```
-- `status()` 可设置 `success`、`info`、`warning` 或 `danger`，也可以使用 `success()`、`info()`、`warning()`、`danger()` 快捷方法
-- `seconds( [float]秒数 )` 或 `duration( [int]毫秒数 )` 设置通知显示后的自动关闭时间；`persistent()` 设置为持续显示
-- 定时关闭由浏览器中的 Filament 前端处理，不需要队列、定时任务或常驻服务
-- `sendToDatabase( [Model|Collection|array]接收者, [bool]是否广播刷新事件 = false )` 同步写入 `notifications` 表；接收者模型必须使用 Laravel 的 `Notifiable` Trait
-- 第二个参数为 `false` 时由后台每 30 秒轮询通知，不依赖广播服务；为 `true` 时会广播 `DatabaseNotificationsSent` 事件，实时刷新需要配置 Broadcasting、Laravel Echo、WebSocket 服务，并在非 `sync` 队列下运行 Queue Worker
-- 仅向当前 HTTP 请求的后台操作人显示临时通知时，可使用 `Filament\Notifications\Notification::make()->title( '操作成功' )->success()->send()`，该方式通过 Session 显示且不写入数据库
 
 ## 系统配置模型 [app/Models/SystemConfig.php]
 - 配置类别: Array `SystemConfig::CATEGORIES`
