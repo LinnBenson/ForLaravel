@@ -84,26 +84,4 @@ return new class extends PluginProvider {
             PackagesTable::class,
         ] );
     }
-
-    /**
-     * 安装插件。
-     * 创建插件包数据表。
-     * @return bool 安装成功返回 true
-     */
-    public function install(): bool {
-        $this->register();
-        Packages::up();
-        return true;
-    }
-
-    /**
-     * 卸载插件。
-     * 删除插件包数据表。
-     * @return bool 卸载成功返回 true
-     */
-    public function uninstall(): bool {
-        $this->register();
-        Packages::down();
-        return true;
-    }
 };
