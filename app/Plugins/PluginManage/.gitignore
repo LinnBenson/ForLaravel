@@ -1,1 +1,3 @@
 *.sqlite*
+Database/package/*
+!Database/package/.gitignore

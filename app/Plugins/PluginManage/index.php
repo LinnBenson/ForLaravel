@@ -18,9 +18,9 @@ return new class extends PluginProvider {
      * 插件信息
      */
     public function __construct() {
-        $this->name = '插件市场';
+        $this->name = '插件管理市场';
         $this->description = '私有部署的插件市场系统';
-        $this->version = '1.0.2';
+        $this->version = '1.0.5';
         $this->author = 'System';
     }
 

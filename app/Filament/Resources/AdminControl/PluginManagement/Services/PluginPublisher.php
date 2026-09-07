@@ -3,13 +3,12 @@
 namespace App\Filament\Resources\AdminControl\PluginManagement\Services;
 
 use FilesystemIterator;
-use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Facades\Http;
 use RecursiveCallbackFilterIterator;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use RuntimeException;
-use Symfony\Component\Process\Process;
+use Symfony\Component\Finder\Gitignore;
 use Throwable;
 use ZipArchive;
 
@@ -114,7 +113,7 @@ class PluginPublisher {
         try {
             $root = rtrim( realpath( $pluginPath ) ?: '', DIRECTORY_SEPARATOR );
             if ( $root === '' ) { throw new RuntimeException( '插件目录不存在。' ); }
-            $ignoredPaths = $this->getIgnoredPaths( $root, $temporaryDirectory );
+            $ignoredPaths = $this->getIgnoredPaths( $root );
             $zip->addEmptyDir( $pluginId );
             $iterator = new RecursiveIteratorIterator(
                 new RecursiveCallbackFilterIterator(
@@ -145,13 +144,12 @@ class PluginPublisher {
     }
 
     /**
-     * 使用 Git 原生规则获取排除路径。
-     * 独立临时仓库只加载插件根目录的 .gitignore，不读取子目录或原仓库的规则及索引。
+     * 使用 PHP 解析插件排除规则，无需执行 Git 命令。
+     * 只加载插件根目录的 .gitignore，忽略目录不再遍历，避免反向规则恢复已排除目录中的文件。
      * @param string $pluginRoot 插件根目录
-     * @param string $temporaryDirectory 打包临时目录
      * @return array<string, true> 排除文件映射
      */
-    private function getIgnoredPaths( string $pluginRoot, string $temporaryDirectory ): array {
+    private function getIgnoredPaths( string $pluginRoot ): array {
         $ignorePath = "{$pluginRoot}/.gitignore";
         if ( !file_exists( $ignorePath ) && !is_link( $ignorePath ) ) { return []; }
         if ( is_link( $ignorePath ) || !is_file( $ignorePath ) || !is_readable( $ignorePath ) ) {
@@ -160,47 +158,31 @@ class PluginPublisher {
         if ( filesize( $ignorePath ) > 1048576 ) { throw new RuntimeException( '插件 .gitignore 文件不能超过 1 MB。' ); }
         $rules = file_get_contents( $ignorePath );
         if ( $rules === false ) { throw new RuntimeException( '插件 .gitignore 文件读取失败。' ); }
-        $repositoryPath = "{$temporaryDirectory}/ignore-".bin2hex( random_bytes( 10 ) );
-        // 清除继承的 Git 环境变量，避免影响临时仓库、索引及规则匹配。
-        $environment = [];
-        foreach ( array_keys( array_merge( getenv(), $_ENV, $_SERVER ) ) as $name ) {
-            if ( str_starts_with( (string) $name, 'GIT_' ) ) { $environment[$name] = false; }
-        }
-        $environment['GIT_CONFIG_NOSYSTEM'] = '1';
-        $environment['GIT_CONFIG_GLOBAL'] = '/dev/null';
-        try {
-            $initialize = new Process( ['git', 'init', '--template=', '--quiet', $repositoryPath], $temporaryDirectory, $environment );
-            $initialize->mustRun();
-            if ( file_put_contents( "{$repositoryPath}/.gitignore", $rules ) === false ) {
-                throw new RuntimeException( '插件排除规则临时文件写入失败。' );
-            }
-            // 在空工作区匹配真实文件路径，避免子目录规则、嵌套仓库和跟踪状态干扰。
-            $iterator = new RecursiveIteratorIterator( new RecursiveCallbackFilterIterator(
+        $regex = Gitignore::toRegex( $rules );
+        // 目录使用不带末尾斜杠的路径匹配，目录专用规则则去掉末尾斜杠。
+        // 避免 package/* 的星号匹配空字符串，错误排除 package 目录本身。
+        $directoryRules = preg_replace( '~/([ \t]*)(\r?)$~m', '$1$2', $rules );
+        $directoryRegex = Gitignore::toRegex( $directoryRules );
+        $ignoredPaths = [];
+        $iterator = new RecursiveIteratorIterator(
+            new RecursiveCallbackFilterIterator(
                 new RecursiveDirectoryIterator( $pluginRoot, FilesystemIterator::SKIP_DOTS ),
-                static fn ( \SplFileInfo $file ): bool => !$file->isLink() && $file->getFilename() !== '.git',
-            ) );
-            $input = ( function () use ( $iterator, $pluginRoot ): \Generator {
-                foreach ( $iterator as $file ) {
-                    if ( $file->isFile() ) { yield substr( $file->getPathname(), strlen( $pluginRoot ) + 1 )."\0"; }
-                }
-            } )();
-            $process = new Process( [
-                'git', '-c', 'core.ignoreCase=false',
-                'check-ignore', '--no-index', '--stdin', '-z',
-            ], $repositoryPath, $environment, $input );
-            $process->run();
-            // check-ignore 返回 1 表示没有匹配项，并非执行失败。
-            if ( !in_array( $process->getExitCode(), [0, 1], true ) ) {
-                throw new RuntimeException( 'Git 排除规则匹配失败。' );
-            }
-            $paths = explode( "\0", $process->getOutput() );
-            return array_fill_keys( array_filter( $paths, static fn ( string $path ): bool => $path !== '' ), true );
-        }catch ( Throwable $throwable ) {
-            throw new RuntimeException( '插件 .gitignore 解析失败，请确认 Git 已安装且 PHP 可以执行 Git 命令。', 0, $throwable );
-        }finally {
-            if ( is_dir( $repositoryPath ) && !( new Filesystem() )->deleteDirectory( $repositoryPath ) ) {
-                report( new RuntimeException( '插件排除规则临时目录清理失败。' ) );
-            }
-        }
+                static function ( \SplFileInfo $file ) use ( $pluginRoot, $regex, $directoryRegex, &$ignoredPaths ): bool {
+                    if ( $file->isLink() || $file->getFilename() === '.git' ) { return false; }
+                    $relativePath = substr( $file->getPathname(), strlen( $pluginRoot ) + 1 );
+                    if ( $relativePath === '.gitignore' && $file->isFile() ) { return true; }
+                    $matched = @preg_match( $file->isDir() ? $directoryRegex : $regex, $relativePath );
+                    if ( $matched === false ) {
+                        throw new RuntimeException( '插件 .gitignore 解析失败：'.preg_last_error_msg() );
+                    }
+                    if ( $matched === 1 ) { $ignoredPaths[$relativePath] = true; }
+                    return $matched === 0;
+                },
+            ),
+            RecursiveIteratorIterator::SELF_FIRST,
+        );
+        // 消费迭代器，由过滤器记录排除路径。
+        iterator_count( $iterator );
+        return $ignoredPaths;
     }
 }
