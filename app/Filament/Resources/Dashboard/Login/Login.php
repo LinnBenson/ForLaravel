@@ -14,7 +14,14 @@ use Illuminate\Validation\ValidationException;
  * @package App\Filament\Resources\Dashboard\Login
  */
 class Login extends \Filament\Auth\Pages\Login {
-    protected string $view = 'Filament::Dashboard.Login.login';
+    /**
+     * 获取登录视图。
+     * 根据 filament.login 配置选择登录页面模板。
+     * @return string 登录视图名称
+     */
+    public function getView(): string {
+        return config( 'filament.login', 'Filament::Dashboard.Login.login_v1' );
+    }
 
     /**
      * 管理员登录认证。

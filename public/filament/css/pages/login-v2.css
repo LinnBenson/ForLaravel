@@ -1,0 +1,306 @@
+/* V2 全屏布局及主题变量 */
+.fi-simple-layout:has(.login-v2) {
+    --login-bg: var(--gray-50);
+    --login-surface: var(--color-white, #fff);
+    --login-ink: var(--gray-950);
+    --login-muted: var(--gray-500);
+    --login-line: color-mix(in srgb, var(--gray-400) 23%, transparent);
+    --login-accent: var(--primary-600);
+    --login-wash: color-mix(in srgb, var(--primary-500) 5%, var(--login-bg));
+    min-height: 100svh;
+    background: var(--login-bg);
+    color: var(--login-ink);
+}
+.dark .fi-simple-layout:has(.login-v2) {
+    --login-bg: var(--gray-950);
+    --login-surface: var(--gray-900);
+    --login-ink: var(--gray-100);
+    --login-muted: var(--gray-400);
+    --login-line: color-mix(in srgb, var(--gray-500) 24%, transparent);
+    --login-accent: var(--primary-400);
+}
+.fi-simple-layout:has(.login-v2) .fi-simple-main-ctn {
+    padding: 0;
+}
+.fi-simple-layout:has(.login-v2) .fi-simple-main {
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    padding: 0;
+    background: transparent;
+    border-radius: 0;
+    box-shadow: none;
+}
+.fi-simple-layout:has(.login-v2) .fi-simple-page-content {
+    gap: 0;
+}
+.login-v2 {
+    display: flex;
+    min-height: 100svh;
+    overflow: clip;
+    background: radial-gradient(ellipse at 50% 40%, var(--login-wash), transparent 65%);
+    flex-direction: column;
+    position: relative;
+    isolation: isolate;
+}
+
+/* 页眉品牌与原生主题切换 */
+.login-v2 .login-v2-topbar {
+    display: flex;
+    min-height: 6rem;
+    margin: 0 clamp(1.25rem, 4.5vw, 5rem);
+    border-bottom: 1px solid var(--login-line);
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    z-index: 1;
+}
+.login-v2 .login-v2-brand {
+    display: flex;
+    min-width: 0;
+    font-size: 1rem;
+    font-weight: 650;
+    letter-spacing: -0.025em;
+    overflow-wrap: anywhere;
+    align-items: center;
+    gap: 0.85rem;
+}
+.login-v2 .login-v2-symbol {
+    display: flex;
+    width: 1.8rem;
+    height: 1.9rem;
+    flex: 0 0 auto;
+    align-items: end;
+    gap: 0.2rem;
+    transform: skewY(-12deg);
+}
+.login-v2 .login-v2-symbol span {
+    width: 0.45rem;
+    height: 65%;
+    background: var(--login-accent);
+    border-radius: 0.1rem;
+}
+.login-v2 .login-v2-symbol span:nth-child(2) { height: 100%; }
+.login-v2 .login-v2-symbol span:nth-child(3) { height: 82%; }
+.login-v2 .login-v2-theme {
+    padding: 0.2rem;
+    flex: 0 0 auto;
+    background: var(--login-surface);
+    border: 1px solid var(--login-line);
+    border-radius: 999px;
+}
+.login-v2 .login-v2-theme .fi-theme-switcher { gap: 0.15rem; }
+.login-v2 .login-v2-theme .fi-theme-switcher-btn {
+    width: 2.15rem;
+    height: 2.15rem;
+    border-radius: 50%;
+}
+
+/* 建筑拱门与细线坐标 */
+.login-v2 .login-v2-stage {
+    display: grid;
+    min-width: 0;
+    padding: 3.75rem 1.25rem 3rem;
+    flex: 1;
+    place-items: center;
+    position: relative;
+}
+.login-v2 .login-v2-architecture {
+    width: min(78rem, 100%);
+    overflow: hidden;
+    pointer-events: none;
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    z-index: -1;
+    mask-image: linear-gradient(transparent, #000 12%, #000 85%, transparent);
+}
+.login-v2 .login-v2-arch {
+    width: 57rem;
+    height: 65rem;
+    border: 1px solid var(--login-line);
+    border-radius: 50% 50% 0 0;
+    position: absolute;
+    top: 2.25rem;
+    left: 50%;
+    transform: translateX(-50%);
+}
+.login-v2 .login-v2-arch-middle {
+    width: 48rem;
+    top: 5.5rem;
+}
+.login-v2 .login-v2-arch-inner {
+    width: 39rem;
+    top: 8.75rem;
+    border-color: color-mix(in srgb, var(--login-accent) 18%, transparent);
+}
+.login-v2 .login-v2-coordinate {
+    color: var(--login-muted);
+    font-family: ui-monospace, monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.18em;
+    writing-mode: vertical-rl;
+    position: absolute;
+    top: 45%;
+}
+.login-v2 .login-v2-coordinate-left { left: 5%; }
+.login-v2 .login-v2-coordinate-right { right: 5%; }
+.login-v2 .login-v2-baseline {
+    height: 1px;
+    background: var(--login-line);
+    position: absolute;
+    right: 0;
+    bottom: 6rem;
+    left: 0;
+}
+
+/* 标题与登录卡片 */
+.login-v2 .login-v2-entry {
+    width: min(100%, 27rem);
+    animation: login-v2-enter 0.55s ease-out both;
+}
+.login-v2 .login-v2-intro {
+    margin-bottom: 2rem;
+    text-align: center;
+}
+.login-v2 .login-v2-eyebrow {
+    display: inline-flex;
+    margin-bottom: 1rem;
+    color: var(--login-accent);
+    font-family: ui-monospace, monospace;
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    align-items: center;
+    gap: 0.6rem;
+}
+.login-v2 .login-v2-eyebrow i {
+    width: 0.35rem;
+    height: 0.35rem;
+    background: currentColor;
+    transform: rotate(45deg);
+}
+.login-v2 .login-v2-intro h1 {
+    margin: 0;
+    font-size: clamp(1.8rem, 3.2vw, 2.55rem);
+    font-weight: 550;
+    line-height: 1.3;
+    letter-spacing: -0.055em;
+    text-wrap: balance;
+}
+.login-v2 .login-v2-intro > p {
+    margin-top: 0.85rem;
+    color: var(--login-muted);
+    font-size: 0.82rem;
+    line-height: 1.7;
+}
+.login-v2 .login-v2-card {
+    padding: 2.25rem;
+    background: var(--login-surface);
+    border: 1px solid var(--login-line);
+    border-radius: 1rem;
+    box-shadow: 0 24px 65px -35px color-mix(in srgb, var(--gray-950) 30%, transparent), 0 4px 12px -8px color-mix(in srgb, var(--gray-950) 15%, transparent);
+}
+.login-v2 .login-v2-card-heading {
+    display: flex;
+    margin-bottom: 1.8rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--login-line);
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+.login-v2 .login-v2-kicker {
+    color: var(--login-muted);
+    font-size: 0.7rem;
+}
+.login-v2 .login-v2-card-heading h2 {
+    margin-top: 0.3rem;
+    font-size: 1.2rem;
+    font-weight: 600;
+    letter-spacing: -0.03em;
+}
+.login-v2 .login-v2-key {
+    display: grid;
+    width: 2.8rem;
+    height: 2.8rem;
+    flex: 0 0 auto;
+    background: color-mix(in srgb, var(--login-accent) 7%, var(--login-surface));
+    border: 1px solid color-mix(in srgb, var(--login-accent) 14%, transparent);
+    border-radius: 50%;
+    color: var(--login-accent);
+    place-items: center;
+}
+.login-v2 .login-v2-key svg { width: 1.5rem; height: 1.5rem; }
+.login-v2 .login-v2-card .fi-input-wrp {
+    background: var(--login-bg);
+    border-radius: 0.5rem;
+}
+.login-v2 .login-v2-card .fi-input {
+    min-height: 2.9rem;
+    font-size: 1rem;
+}
+.login-v2 .login-v2-card .fi-btn {
+    min-height: 2.9rem;
+    border-radius: 0.5rem;
+}
+.login-v2 .login-v2-note {
+    display: flex;
+    margin-top: 1.5rem;
+    color: var(--login-muted);
+    font-size: 0.7rem;
+    line-height: 1.6;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+}
+.login-v2 .login-v2-note svg { width: 0.9rem; height: 0.9rem; flex: 0 0 auto; }
+.login-v2 .login-v2-caption {
+    display: flex;
+    margin-top: 1.75rem;
+    color: var(--login-muted);
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    align-items: center;
+    justify-content: center;
+    gap: 0.85rem;
+}
+.login-v2 .login-v2-caption > span {
+    width: 1.5rem;
+    height: 1px;
+    background: var(--login-line);
+}
+.login-v2 .login-v2-footer {
+    display: flex;
+    margin: 0 clamp(1.25rem, 4.5vw, 5rem);
+    padding: 1.5rem 0;
+    border-top: 1px solid var(--login-line);
+    color: var(--login-muted);
+    font-size: 0.68rem;
+    line-height: 1.6;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+/* 小屏和减少动态效果偏好 */
+@media (max-width: 600px) {
+    .login-v2 .login-v2-topbar { min-height: 5rem; }
+    .login-v2 .login-v2-brand { font-size: 0.9rem; }
+    .login-v2 .login-v2-stage { padding: 2.5rem 1.25rem; }
+    .login-v2 .login-v2-card { padding: 1.65rem; }
+    .login-v2 .login-v2-coordinate { display: none; }
+    .login-v2 .login-v2-footer { align-items: start; font-size: 0.62rem; }
+    .login-v2 .login-v2-footer > span:last-child { text-align: right; }
+}
+@media (max-width: 360px) {
+    .login-v2 .login-v2-card { padding: 1.25rem; }
+    .login-v2 .login-v2-theme .fi-theme-switcher-btn { width: 1.8rem; }
+}
+@keyframes login-v2-enter {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+    .login-v2 .login-v2-entry { animation: none; }
+}

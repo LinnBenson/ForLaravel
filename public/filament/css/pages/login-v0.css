@@ -1,0 +1,202 @@
+/* V4 主题色与全屏容器 */
+.fi-simple-layout:has(.login-v0) {
+    --login-v0-bg: #101f23;
+    --login-v0-surface: color-mix(in srgb, var(--gray-50) 92%, #537a75);
+    --login-v0-ink: var(--gray-950);
+    --login-v0-muted: var(--gray-600);
+    --login-v0-line: color-mix(in srgb, var(--gray-500) 45%, transparent);
+    --login-v0-accent: var(--primary-600);
+    min-height: 100svh;
+    background: var(--login-v0-bg);
+    color: var(--login-v0-ink);
+}
+.dark .fi-simple-layout:has(.login-v0) {
+    --login-v0-surface: color-mix(in srgb, var(--gray-950) 45%, #1c3538);
+    --login-v0-ink: var(--gray-100);
+    --login-v0-muted: var(--gray-300);
+    --login-v0-line: color-mix(in srgb, var(--gray-300) 40%, transparent);
+    --login-v0-accent: var(--primary-400);
+}
+.fi-simple-layout:has(.login-v0) .fi-simple-main-ctn { padding: 0; }
+.fi-simple-layout:has(.login-v0) .fi-simple-main {
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    padding: 0;
+    background: transparent;
+    border-radius: 0;
+    box-shadow: none;
+}
+.fi-simple-layout:has(.login-v0) .fi-simple-page-content { gap: 0; }
+.login-v0 {
+    display: grid;
+    min-height: 100svh;
+    padding: clamp(1.25rem, 6vw, 6rem);
+    background: var(--login-v0-bg);
+    place-items: center;
+    position: relative;
+    isolation: isolate;
+}
+.login-v0 .login-v0-backdrop {
+    background: linear-gradient(rgb(8 28 32 / 35%), rgb(8 28 32 / 55%)), url('../../images/pages/login-v0-hallstatt.jpg') center / cover;
+    clip-path: polygon(42% 0, 100% 0, 100% 100%, 28% 100%);
+    pointer-events: none;
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+}
+.login-v0 .login-v0-panel {
+    display: grid;
+    width: min(100%, 72rem);
+    min-width: 0;
+    min-height: 39rem;
+    padding: clamp(1.25rem, 3vw, 3rem);
+    background: linear-gradient(145deg, rgb(255 255 255 / 3%), transparent 70%), var(--login-v0-surface);
+    border: 1px solid rgb(255 255 255 / 5%);
+    border-radius: 1.6rem;
+    box-shadow: 0 32px 90px rgb(0 0 0 / 30%);
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    gap: clamp(2rem, 5vw, 5rem);
+}
+
+/* 左侧照片斜切，文字独立于裁切层 */
+.login-v0 .login-v0-visual {
+    display: flex;
+    min-width: 0;
+    min-height: 33rem;
+    padding: 1.75rem 26% 1.75rem 1.75rem;
+    color: #fff;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
+    isolation: isolate;
+}
+.login-v0 .login-v0-photo {
+    background: linear-gradient(180deg, rgb(7 27 30 / 55%), rgb(7 27 30 / 10%) 40%, rgb(7 27 30 / 85%)), url('../../images/pages/login-v0-hallstatt.jpg') 52% center / cover;
+    border-radius: 0.9rem;
+    clip-path: polygon(0 0, 100% 0, 77% 100%, 0 100%);
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+}
+.login-v0 .login-v0-brand {
+    display: flex;
+    font-size: 1.1rem;
+    font-weight: 650;
+    overflow-wrap: anywhere;
+    align-items: center;
+    gap: 0.65rem;
+}
+.login-v0 .login-v0-brand svg { width: 1.5rem; height: 1.5rem; flex: 0 0 auto; }
+.login-v0 .login-v0-caption-line {
+    display: block;
+    width: 2rem;
+    height: 2px;
+    margin-bottom: 1.25rem;
+    background: var(--primary-400);
+}
+.login-v0 .login-v0-caption p {
+    margin-bottom: 0.75rem;
+    font-size: clamp(1.25rem, 2vw, 1.7rem);
+    font-weight: 500;
+    line-height: 1.6;
+}
+.login-v0 .login-v0-caption > span:last-child { font-size: 0.75rem; line-height: 1.8; }
+
+/* 右侧认证区域与主题切换，保留原生焦点和错误状态 */
+.login-v0 .login-v0-entry {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+}
+.login-v0 .login-v0-toolbar {
+    display: flex;
+    min-height: 2.5rem;
+    margin-bottom: 2rem;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 1rem;
+}
+.login-v0 .login-v0-mobile-brand { display: none; }
+.login-v0 .login-v0-theme {
+    padding: 0.2rem;
+    border: 1px solid var(--login-v0-line);
+    border-radius: 0.5rem;
+}
+.login-v0 .login-v0-theme .fi-theme-switcher-btn { width: 2.5rem; height: 2.5rem; }
+.login-v0 .login-v0-theme .fi-theme-switcher-btn:not(.fi-active) { color: var(--login-v0-muted); }
+.login-v0 .login-v0-theme .fi-theme-switcher-btn.fi-active {
+    background: color-mix(in srgb, var(--login-v0-accent) 12%, transparent);
+    color: var(--login-v0-accent);
+}
+.login-v0 .login-v0-form {
+    width: 100%;
+    max-width: 27rem;
+    margin: auto;
+}
+.login-v0 .login-v0-heading { margin-bottom: 2.5rem; text-align: center; }
+.login-v0 .login-v0-heading h1 {
+    font-size: clamp(1.6rem, 2.5vw, 2rem);
+    font-weight: 600;
+    line-height: 1.4;
+}
+.login-v0 .login-v0-heading p {
+    margin-top: 0.75rem;
+    color: var(--login-v0-muted);
+    font-size: 0.875rem;
+    line-height: 1.7;
+    overflow-wrap: anywhere;
+}
+.login-v0 .login-v0-form .fi-input-wrp {
+    background: transparent;
+    border-radius: 0.4rem;
+}
+.login-v0 .login-v0-form .fi-input { min-height: 3.2rem; font-size: 1rem; }
+.login-v0 .login-v0-form .fi-btn { min-height: 3.2rem; border-radius: 0.4rem; }
+.login-v0 .login-v0-note {
+    display: flex;
+    margin-top: 1.5rem;
+    color: var(--login-v0-muted);
+    font-size: 0.75rem;
+    line-height: 1.7;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+}
+.login-v0 .login-v0-note svg { width: 1rem; height: 1rem; flex: 0 0 auto; }
+.login-v0 .login-v0-footer {
+    margin-top: 2rem;
+    color: var(--login-v0-muted);
+    font-size: 0.75rem;
+    line-height: 1.8;
+    text-align: center;
+    overflow-wrap: anywhere;
+}
+
+/* 小屏收拢为单栏，优先展示表单 */
+@media (max-width: 800px) {
+    .login-v0 { padding: 2rem 1.25rem; }
+    .login-v0 .login-v0-panel {
+        width: min(100%, 30rem);
+        min-height: 0;
+        padding: 1.75rem;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 0;
+    }
+    .login-v0 .login-v0-visual { display: none; }
+    .login-v0 .login-v0-mobile-brand {
+        display: block;
+        min-width: 0;
+        font-size: 0.875rem;
+        font-weight: 600;
+        overflow-wrap: anywhere;
+    }
+    .login-v0 .login-v0-toolbar { justify-content: space-between; margin-bottom: 2.5rem; }
+    .login-v0 .login-v0-theme { flex: 0 0 auto; }
+    .login-v0 .login-v0-heading { margin-bottom: 2rem; }
+}
+@media (max-width: 380px) {
+    .login-v0 { padding: 1rem; }
+    .login-v0 .login-v0-panel { padding: 1.25rem; border-radius: 1rem; }
+    .login-v0 .login-v0-theme .fi-theme-switcher-btn { width: 2.25rem; }
+}
