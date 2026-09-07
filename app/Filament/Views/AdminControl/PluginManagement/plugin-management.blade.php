@@ -18,7 +18,96 @@
                 <span>{{ count( $featurePlugins ) }} 个</span>
             </div>
             -->
-            <div class="plugin-management-card-grid">
+            <div
+                class="plugin-management-card-grid"
+                x-data="{
+                    dispose: null,
+                    init() {
+                        this.$nextTick(() => {
+                            const grid = this.$el;
+                            let masonry = null;
+                            let frame = null;
+                            let stopped = false;
+                            let lastWidth = 0;
+                            const observedCards = new Set();
+                            const schedule = () => {
+                                if ( stopped || frame !== null ) { return; }
+                                frame = requestAnimationFrame(layout);
+                            };
+                            const resizeObserver = new ResizeObserver(entries => {
+                                for ( const entry of entries ) {
+                                    if ( entry.target !== grid || entry.contentRect.width !== lastWidth ) {
+                                        if ( entry.target === grid ) { lastWidth = entry.contentRect.width; }
+                                        schedule();
+                                    }
+                                }
+                            });
+                            // 卡片增删、按钮和文字更新后，重新收集卡片并排列。
+                            const layout = () => {
+                                frame = null;
+                                if ( stopped || !grid.isConnected || !window.Masonry ) { return; }
+                                const cards = [...grid.querySelectorAll(':scope > .plugin-management-card')];
+                                for ( const card of observedCards ) {
+                                    if ( !cards.includes(card) ) {
+                                        resizeObserver.unobserve(card);
+                                        observedCards.delete(card);
+                                    }
+                                }
+                                if ( cards.length === 0 ) {
+                                    masonry?.destroy();
+                                    masonry = null;
+                                    grid.classList.remove('is-masonry');
+                                    return;
+                                }
+                                const gap = parseFloat(getComputedStyle(document.documentElement).fontSize);
+                                const columns = Math.max(1, Math.floor((grid.clientWidth + gap) / (17 * gap + gap)));
+                                const width = (grid.clientWidth - (columns - 1) * gap) / columns;
+                                grid.classList.add('is-masonry');
+                                for ( const card of cards ) {
+                                    card.style.width = `${width}px`;
+                                    if ( !observedCards.has(card) ) {
+                                        resizeObserver.observe(card);
+                                        observedCards.add(card);
+                                    }
+                                }
+                                if ( !masonry ) {
+                                    masonry = new window.Masonry(grid, {
+                                        itemSelector: '.plugin-management-card',
+                                        columnWidth: width,
+                                        gutter: gap,
+                                        percentPosition: true,
+                                        transitionDuration: 0,
+                                        resize: false,
+                                        initLayout: false,
+                                    });
+                                }
+                                masonry.options.columnWidth = width;
+                                masonry.options.gutter = gap;
+                                masonry.reloadItems();
+                                masonry.layout();
+                            };
+                            const mutationObserver = new MutationObserver(schedule);
+                            mutationObserver.observe(grid, { childList: true, subtree: true, characterData: true });
+                            resizeObserver.observe(grid);
+                            window.addEventListener('load', schedule, { once: true });
+                            document.fonts.ready.then(schedule);
+                            schedule();
+                            // 离开页面时释放实例和监听，兼容后台 SPA 导航。
+                            this.dispose = () => {
+                                stopped = true;
+                                cancelAnimationFrame(frame);
+                                mutationObserver.disconnect();
+                                resizeObserver.disconnect();
+                                window.removeEventListener('load', schedule);
+                                masonry?.destroy();
+                            };
+                        });
+                    },
+                    destroy() {
+                        this.dispose?.();
+                    },
+                }"
+            >
                 @forelse ( $featurePlugins as $plugin )
                     <article class="plugin-management-card" wire:key="plugin-card-{{ $plugin['id'] }}">
                         <div class="plugin-management-card-top">
@@ -237,6 +326,14 @@
             grid-template-columns: repeat(auto-fill, minmax(min(100%, 17rem), 1fr));
             gap: 1rem;
             align-items: start;
+        }
+        .plugin-management-card-grid.is-masonry {
+            display: block;
+            position: relative;
+        }
+        .plugin-management-card-grid.is-masonry > .plugin-management-card {
+            box-sizing: border-box;
+            margin-bottom: 1rem;
         }
         .plugin-management-card {
             display: flex;

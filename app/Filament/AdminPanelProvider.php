@@ -17,6 +17,7 @@ use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use Filament\Panel;
 use Filament\PanelProvider;
+use Filament\Support\Assets\Js;
 use Filament\Support\Colors\Color;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
@@ -51,6 +52,9 @@ class AdminPanelProvider extends PanelProvider {
             ->login( Login::class )
             ->databaseNotifications()
             ->databaseNotificationsPolling( '0s' )
+            ->assets( [
+                Js::make( 'masonry', asset( 'filament/js/masonry.pkgd.min.js' ) ),
+            ] )
             ->colors( [
                 'primary' => Color::Blue,
             ] )
