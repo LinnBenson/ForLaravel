@@ -493,9 +493,7 @@ class SystemConfigPage extends Page {
         $path = $upload->storePublicly( $directory, $disk );
         if ( ! is_string( $path ) || $path === '' ) { throw new RuntimeException( '文件保存失败。' ); }
         if ( ! Storage::disk( $disk )->exists( $path ) ) { throw new RuntimeException( '上传文件写入失败。' ); }
-        $url = Storage::disk( $disk )->url( $path );
-        $publicPath = parse_url( $url, PHP_URL_PATH );
-        return is_string( $publicPath ) && $publicPath !== '' ? $publicPath : $url;
+        return $path;
     }
 
     /**
