@@ -48,7 +48,7 @@ return new class extends Migration
                 'type' => 'image',
                 'name' => '应用标志',
                 'key' => 'app.icon',
-                'value' => '/favicon.ico',
+                'value' => config( 'app.url' ).'/favicon.ico',
                 'description' => '用于应用标志显示'
             ],
             [

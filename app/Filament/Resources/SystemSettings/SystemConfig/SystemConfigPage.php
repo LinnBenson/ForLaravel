@@ -337,6 +337,11 @@ class SystemConfigPage extends Page {
      * @return string|null 文件地址
      */
     public function getConfigFileUrl( ?string $path ): ?string {
+        $appHost = parse_url( (string) config( 'app.url' ), PHP_URL_HOST );
+        $pathHost = parse_url( $path, PHP_URL_HOST );
+        if ( ! empty( $pathHost ) && is_string( $appHost ) && strcasecmp( $pathHost, $appHost ) === 0 ) {
+            return $path;
+        }
         $path = $this->getConfigFilePath( $path );
         if ( $path === null ) { return null; }
         $disk = (string) config( 'system_uploads.system_config.disk', 'public' );
